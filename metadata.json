@@ -1,0 +1,6 @@
+{
+  "name": "SplitPro — Offline Expense & Bill Splitter",
+  "description": "100% offline shared expense tracker and bill splitter with multi-payer support, 4 split modes, smart debt simplification, multi-currency PKR conversion, receipt compression, SVG analytics, and bilingual English + Urdu WhatsApp statements.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

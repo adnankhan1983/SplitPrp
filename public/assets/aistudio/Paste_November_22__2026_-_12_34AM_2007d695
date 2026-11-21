@@ -1,0 +1,3067 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#059669" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>SplitPro — Offline Expense &amp; Bill Splitter</title>
+  <style>
+    /* ==================== RESET & DESIGN TOKENS (LIGHT THEME ONLY) ==================== */
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-muted: #f1f5f9;
+      --bg-subtle: #e2e8f0;
+      --text-main: #0f172a;
+      --text-secondary: #475569;
+      --text-muted: #94a3b8;
+      --border-color: #e2e8f0;
+      --primary: #059669;
+      --primary-dark: #047857;
+      --primary-light: #ecfdf5;
+      --primary-border: #a7f3d0;
+      --teal: #0d9488;
+      --teal-light: #f0fdfa;
+      --danger: #e11d48;
+      --danger-light: #fff1f2;
+      --danger-border: #fecdd3;
+      --sky: #0284c7;
+      --sky-light: #f0f9ff;
+      --amber: #d97706;
+      --amber-light: #fffbeb;
+      --radius-sm: 10px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-xl: 24px;
+      --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-sm: 0 2px 8px rgba(15, 23, 42, 0.06);
+      --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.14);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      overscroll-behavior-y: none;
+      line-height: 1.45;
+    }
+
+    body {
+      padding-bottom: 88px;
+    }
+
+    /* Hide number spinners */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .flex-col { display: flex; flex-direction: column; }
+    .items-center { align-items: center; }
+    .items-start { align-items: flex-start; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .flex-wrap { flex-wrap: wrap; }
+    .flex-1 { flex: 1; min-width: 0; }
+    .shrink-0 { flex-shrink: 0; }
+    .gap-1 { gap: 4px; }
+    .gap-1-5 { gap: 6px; }
+    .gap-2 { gap: 8px; }
+    .gap-2-5 { gap: 10px; }
+    .gap-3 { gap: 12px; }
+    .mt-1 { margin-top: 4px; }
+    .mt-1-5 { margin-top: 6px; }
+    .mt-2 { margin-top: 8px; }
+    .mt-3 { margin-top: 12px; }
+    .mb-1 { margin-bottom: 4px; }
+    .mb-2 { margin-bottom: 8px; }
+    .mb-3 { margin-bottom: 12px; }
+    .w-full { width: 100%; }
+    .text-right { text-align: right; }
+    .text-center { text-align: center; }
+    .truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* ==================== HEADER ==================== */
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      background: rgba(255, 255, 255, 0.96);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 16px;
+      box-shadow: var(--shadow-xs);
+    }
+    .header-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .brand-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #059669, #0d9488);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--shadow-xs);
+    }
+    .brand-title {
+      font-size: 17px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text-main);
+      line-height: 1.1;
+    }
+    .pro-badge {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 6px;
+      border-radius: 6px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      border: 1px solid var(--primary-border);
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--text-secondary);
+      font-weight: 500;
+      margin-top: 2px;
+    }
+    .user-select {
+      appearance: none;
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+      color: var(--primary-dark);
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 12px;
+      padding: 8px 26px 8px 10px;
+      outline: none;
+      max-width: 135px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23047857' stroke-width='2.5'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+      background-size: 13px;
+    }
+
+    /* ==================== MAIN CONTAINER & CARDS ==================== */
+    .main-wrap {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 14px 14px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border-radius: var(--radius-xl);
+      padding: 16px;
+      border: 1px solid var(--border-color);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .section-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .section-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    /* ==================== BUTTONS & INPUTS ==================== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease, background-color 0.15s ease;
+    }
+    .btn:active { transform: scale(0.96); }
+    .btn-sm { padding: 7px 11px; font-size: 12px; border-radius: 10px; }
+    .btn-xs { padding: 5px 9px; font-size: 11px; border-radius: 8px; }
+    .btn-primary { background: var(--primary); color: #ffffff; }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-teal { background: var(--teal); color: #ffffff; }
+    .btn-dark { background: #0f172a; color: #ffffff; }
+    .btn-green { background: #16a34a; color: #ffffff; }
+    .btn-light { background: var(--bg-muted); color: var(--text-main); border: 1px solid var(--border-color); }
+    .btn-danger-soft { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger-border); }
+    .btn-primary-soft { background: var(--primary-light); color: var(--primary-dark); border: 1px solid var(--primary-border); }
+
+    .input, .select, .textarea {
+      width: 100%;
+      background: var(--bg-page);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 14px;
+      color: var(--text-main);
+      outline: none;
+      transition: border-color 0.15s, background-color 0.15s;
+    }
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--primary);
+      background: #ffffff;
+    }
+    .label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 5px;
+    }
+
+    /* ==================== DASHBOARD METRICS ==================== */
+    .net-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+    .net-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      margin-top: 2px;
+      color: var(--text-main);
+    }
+    .status-pill {
+      padding: 5px 11px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 800;
+      background: var(--bg-muted);
+      color: var(--text-secondary);
+    }
+    .status-pill.positive { background: var(--primary-light); color: var(--primary-dark); }
+    .status-pill.negative { background: var(--danger-light); color: var(--danger); }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .metric-box {
+      border-radius: 16px;
+      padding: 12px;
+    }
+    .metric-box.owed {
+      background: var(--primary-light);
+      border: 1px solid var(--primary-border);
+    }
+    .metric-box.owe {
+      background: var(--danger-light);
+      border: 1px solid var(--danger-border);
+    }
+    .metric-title {
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .metric-amount {
+      font-size: 18px;
+      font-weight: 800;
+      margin-top: 4px;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .qa-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      padding: 10px 6px;
+      border-radius: 16px;
+      border: 1px solid transparent;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+    .qa-btn:active { transform: scale(0.95); }
+    .qa-add { background: var(--primary); color: #ffffff; }
+    .qa-settle { background: var(--teal-light); color: #115e59; border-color: #99f6e4; }
+    .qa-csv { background: var(--sky-light); color: #075985; border-color: #bae6fd; }
+    .qa-wa { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+
+    /* ==================== EMPTY STATE & ONBOARDING ==================== */
+    .empty-card {
+      background: #ffffff;
+      border: 1.5px dashed #cbd5e1;
+      border-radius: var(--radius-xl);
+      padding: 26px 18px;
+      text-align: center;
+    }
+    .empty-icon-wrap {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 12px;
+    }
+    .empty-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .empty-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-top: 5px;
+      max-width: 360px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .step-list {
+      text-align: left;
+      background: var(--bg-page);
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin: 14px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 600;
+    }
+    .step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ==================== LIST ITEMS & BADGES ==================== */
+    .list-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .item-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 18px;
+      padding: 14px;
+      box-shadow: var(--shadow-xs);
+    }
+    .tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 7px;
+      background: var(--bg-muted);
+      color: var(--text-secondary);
+    }
+    .tag-emerald { background: var(--primary-light); color: var(--primary-dark); }
+    .tag-teal { background: var(--teal-light); color: #115e59; }
+    .tag-amber { background: var(--amber-light); color: var(--amber); }
+
+    .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      font-weight: 800;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    /* ==================== SEARCH BAR ==================== */
+    .search-wrap {
+      position: relative;
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .search-input {
+      padding-left: 36px;
+      padding-right: 32px;
+    }
+    .clear-search {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 4px;
+      cursor: pointer;
+    }
+
+    /* ==================== ANALYTICS CHARTS ==================== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .bar-track {
+      width: 100%;
+      height: 8px;
+      background: var(--bg-muted);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 4px;
+    }
+    .bar-fill-emerald { height: 100%; background: var(--primary); border-radius: 999px; }
+    .bar-fill-sky { height: 100%; background: var(--sky); border-radius: 999px; }
+    .trend-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 8px;
+      align-items: end;
+      height: 145px;
+      padding-top: 22px;
+    }
+    .trend-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100%;
+    }
+    .trend-bar {
+      width: 100%;
+      max-width: 32px;
+      border-radius: 8px 8px 0 0;
+      background: linear-gradient(180deg, #10b981, #059669);
+      min-height: 6px;
+    }
+
+    /* ==================== BOTTOM NAVIGATION ==================== */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 35;
+      background: rgba(255, 255, 255, 0.97);
+      backdrop-filter: blur(10px);
+      border-top: 1px solid var(--border-color);
+      padding: 6px 6px 8px;
+      box-shadow: 0 -2px 10px rgba(15, 23, 42, 0.04);
+    }
+    .nav-inner {
+      max-width: 600px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+    }
+    .nav-btn {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 4px 2px;
+      color: var(--text-secondary);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .nav-btn.active {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    /* Floating Action Button (+) */
+    .fab-add {
+      position: fixed;
+      right: 18px;
+      bottom: 76px;
+      z-index: 34;
+      width: 56px;
+      height: 56px;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #059669, #0d9488);
+      color: #ffffff;
+      border: none;
+      box-shadow: 0 8px 20px rgba(5, 150, 105, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.14s ease;
+    }
+    .fab-add:active { transform: scale(0.92); }
+
+    /* ==================== MODALS & BOTTOM SHEETS ==================== */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(3px);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    @media (min-width: 640px) {
+      .modal-backdrop {
+        align-items: center;
+        padding: 16px;
+      }
+      .modal-sheet {
+        border-radius: 24px !important;
+      }
+    }
+    .modal-sheet {
+      background: #ffffff;
+      width: 100%;
+      max-width: 540px;
+      max-height: 92vh;
+      border-radius: 24px 24px 0 0;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-lg);
+      animation: sheetUp 0.22s ease-out;
+    }
+    @keyframes sheetUp {
+      from { transform: translateY(35px); opacity: 0.5; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .modal-header {
+      padding: 15px 18px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    .modal-body {
+      padding: 16px 18px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 13px;
+    }
+    .modal-footer {
+      padding: 12px 18px;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-page);
+      display: flex;
+      gap: 10px;
+      flex-shrink: 0;
+      border-radius: 0 0 24px 24px;
+    }
+    .close-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      border: none;
+      background: var(--bg-muted);
+      color: var(--text-secondary);
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    /* Segmented Pills */
+    .seg-group {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      background: var(--bg-subtle);
+      padding: 4px;
+      border-radius: 12px;
+    }
+    .seg-group.two-col {
+      grid-template-columns: 1fr 1fr;
+      display: inline-grid;
+      padding: 3px;
+    }
+    .seg-btn {
+      border: none;
+      background: transparent;
+      padding: 7px 6px;
+      border-radius: 9px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    .seg-btn.active {
+      background: #ffffff;
+      color: var(--primary-dark);
+      box-shadow: var(--shadow-xs);
+    }
+
+    .sub-panel {
+      background: var(--bg-page);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid-3-7 { display: grid; grid-template-columns: 36% 1fr; gap: 10px; }
+
+    /* Non-blocking Toast */
+    .toast {
+      position: fixed;
+      top: 68px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 60;
+      background: #0f172a;
+      color: #ffffff;
+      padding: 10px 16px;
+      border-radius: 14px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: var(--shadow-lg);
+      white-space: nowrap;
+      max-width: 92vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==================== TOP APP HEADER ==================== -->
+  <header class="app-header">
+    <div class="header-inner">
+      <div class="brand-box">
+        <div class="brand-icon" aria-hidden="true">
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.3" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3-2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </div>
+        <div>
+          <div class="flex items-center gap-1-5">
+            <span class="brand-title">SplitPro</span>
+            <span class="pro-badge">PRO</span>
+          </div>
+          <div class="brand-sub">Offline Expense &amp; Bill Splitter</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1-5">
+        <!-- Quick Jump to About Developer Info -->
+        <button onclick="openAboutSection()" class="btn btn-light btn-xs" style="height:34px;width:34px;padding:0;border-radius:12px;" aria-label="About Developer" title="About Developer">
+          <svg width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+          </svg>
+        </button>
+
+        <!-- Active User Switcher -->
+        <select id="currentUserSelect" onchange="changeCurrentUser(this.value)" aria-label="Active User" class="user-select"></select>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN WORKSPACE ==================== -->
+  <main class="main-wrap">
+
+    <!-- ==================== TAB 1: DASHBOARD ==================== -->
+    <section id="tab-dashboard" class="tab-view flex-col gap-3">
+      <!-- Net Position & Multi-Currency Summary Card -->
+      <div class="card">
+        <div class="flex items-start justify-between gap-2">
+          <div>
+            <div class="net-label">Your Net Position (PKR)</div>
+            <div id="netBalanceDisplay" class="net-value">Rs. 0</div>
+          </div>
+          <span id="netStatusBadge" class="status-pill">All Settled</span>
+        </div>
+
+        <div class="metric-grid">
+          <div class="metric-box owed">
+            <div class="metric-title" style="color:#047857;">
+              <span class="dot" style="background:#10b981;"></span>
+              You Are Owed
+            </div>
+            <div id="youAreOwedDisplay" class="metric-amount" style="color:#047857;">Rs. 0</div>
+          </div>
+          <div class="metric-box owe">
+            <div class="metric-title" style="color:#be123c;">
+              <span class="dot" style="background:#f43f5e;"></span>
+              You Owe
+            </div>
+            <div id="youOweDisplay" class="metric-amount" style="color:#be123c;">Rs. 0</div>
+          </div>
+        </div>
+
+        <!-- 4 Quick Action Buttons -->
+        <div class="quick-actions">
+          <button onclick="openExpenseModal()" class="qa-btn qa-add">
+            <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
+            <span>Add Bill</span>
+          </button>
+          <button onclick="openSettleModal()" class="qa-btn qa-settle">
+            <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>
+            <span>Settle Up</span>
+          </button>
+          <button onclick="exportToCSV()" class="qa-btn qa-csv">
+            <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            <span>CSV/Excel</span>
+          </button>
+          <button onclick="openWhatsAppModal()" class="qa-btn qa-wa">
+            <svg width="19" height="19" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z"/></svg>
+            <span>WhatsApp</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Blank-State Onboarding Card (Visible when no groups & no expenses exist) -->
+      <div id="dashboardOnboarding" class="empty-card hidden">
+        <div class="empty-icon-wrap">
+          <svg width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/>
+          </svg>
+        </div>
+        <div class="empty-title">Welcome to SplitPro!</div>
+        <p class="empty-desc">Your ledger is completely clean and ready. Start tracking shared bills in 3 quick steps:</p>
+        <div class="step-list">
+          <div class="step-item"><span class="step-num">1</span> Add your friends, roommates, or business partners</div>
+          <div class="step-item"><span class="step-num">2</span> Create a Group (or split 1-on-1 directly)</div>
+          <div class="step-item"><span class="step-num">3</span> Tap <b>+ Add Bill</b> to split equally, by %, exact Rs., or shares</div>
+        </div>
+        <div class="flex gap-2 justify-center flex-wrap">
+          <button onclick="openContactModal()" class="btn btn-dark btn-sm">+ Add Contact</button>
+          <button onclick="openGroupModal()" class="btn btn-primary btn-sm">+ Create Group</button>
+          <button onclick="openExpenseModal()" class="btn btn-primary-soft btn-sm">+ Add Expense</button>
+        </div>
+      </div>
+
+      <!-- Smart Simplified Settlement Plan -->
+      <div id="dashboardDebtsCard" class="card">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Smart Debt Simplification</div>
+            <div class="section-sub">Minimum transfers to settle everyone</div>
+          </div>
+          <span class="tag tag-emerald">Auto-Optimized</span>
+        </div>
+        <div id="simplifiedDebtsList" class="list-stack"></div>
+      </div>
+
+      <!-- Recent Activity Preview on Dashboard -->
+      <div id="dashboardRecentCard" class="card">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Recent Bills &amp; Settlements</div>
+            <div class="section-sub">Latest ledger entries</div>
+          </div>
+          <button onclick="switchTab('activity')" class="btn btn-light btn-xs">View All</button>
+        </div>
+        <div id="dashboardRecentList" class="list-stack"></div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 2: GROUPS & GROUP DETAIL VIEW ==================== -->
+    <section id="tab-groups" class="tab-view hidden flex-col gap-3">
+      <!-- Groups List View -->
+      <div id="groupsListView" class="flex-col gap-3">
+        <div class="section-header" style="margin-bottom:0;">
+          <div>
+            <div class="section-title">Shared Groups</div>
+            <div class="section-sub">Tap any group to inspect balances &amp; feed</div>
+          </div>
+          <button onclick="openGroupModal()" class="btn btn-primary btn-sm">+ Add Group</button>
+        </div>
+        <div id="groupsContainer" class="list-stack"></div>
+      </div>
+
+      <!-- Dedicated Group Detail View -->
+      <div id="groupDetailView" class="hidden flex-col gap-3">
+        <div class="flex items-center justify-between gap-2">
+          <button onclick="closeGroupDetail()" class="btn btn-light btn-sm">← All Groups</button>
+          <div class="flex gap-1-5">
+            <button id="gdEditBtn" class="btn btn-light btn-sm">Edit</button>
+            <button id="gdDeleteBtn" class="btn btn-danger-soft btn-sm">Delete</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span id="gdCategoryTag" class="tag tag-emerald">Category</span>
+              <h2 id="gdTitle" class="section-title mt-1-5" style="font-size:19px;">Group Name</h2>
+              <p id="gdMembersText" class="section-sub mt-1">Members</p>
+            </div>
+            <div class="text-right">
+              <div class="net-label">Total Spend</div>
+              <div id="gdTotalSpend" style="font-size:18px;font-weight:800;color:var(--text-main);">Rs. 0</div>
+            </div>
+          </div>
+          <div class="flex gap-2 mt-3">
+            <button id="gdAddExpenseBtn" class="btn btn-primary btn-sm flex-1">+ Add Expense</button>
+            <button id="gdSettleBtn" class="btn btn-teal btn-sm flex-1">Settle Up</button>
+          </div>
+        </div>
+
+        <!-- Group Simplified Debts -->
+        <div class="card">
+          <div class="section-header">
+            <div>
+              <div class="section-title">Group Balances &amp; Settlements</div>
+              <div class="section-sub">Simplified payments inside this group</div>
+            </div>
+          </div>
+          <div id="gdBalancesList" class="list-stack"></div>
+        </div>
+
+        <!-- Group Expense Feed -->
+        <div class="card">
+          <div class="section-header">
+            <div class="section-title">Group Expense Feed</div>
+            <span id="gdFeedCount" class="tag">0 items</span>
+          </div>
+          <div id="gdFeedList" class="list-stack"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 3: ACTIVITY & FULL LEDGER ==================== -->
+    <section id="tab-activity" class="tab-view hidden flex-col gap-3">
+      <div class="section-header" style="margin-bottom:0;">
+        <div>
+          <div class="section-title">Activity &amp; Ledger</div>
+          <div id="activityCountSub" class="section-sub">0 total entries</div>
+        </div>
+        <button onclick="openExpenseModal()" class="btn btn-primary btn-sm">+ Add Expense</button>
+      </div>
+
+      <!-- Search & Group Filter -->
+      <div class="card" style="padding:12px;">
+        <div class="search-wrap mb-2">
+          <svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z"/></svg>
+          <input id="activitySearchInput" type="text" oninput="renderActivityTab()" placeholder="Search description, category, notes, person..." class="input search-input" />
+          <button id="clearSearchBtn" onclick="clearActivitySearch()" class="clear-search hidden" aria-label="Clear search">✕</button>
+        </div>
+        <div class="grid-2">
+          <select id="activityGroupFilter" onchange="renderActivityTab()" class="select" style="font-size:12px;padding:8px 10px;"></select>
+          <select id="activityTypeFilter" onchange="renderActivityTab()" class="select" style="font-size:12px;padding:8px 10px;">
+            <option value="ALL">All Types</option>
+            <option value="expense">Expenses Only</option>
+            <option value="settlement">Settlements Only</option>
+          </select>
+        </div>
+      </div>
+
+      <div id="activityListContainer" class="list-stack"></div>
+    </section>
+
+    <!-- ==================== TAB 4: PRO ANALYTICS ==================== -->
+    <section id="tab-analytics" class="tab-view hidden flex-col gap-3">
+      <div class="section-header" style="margin-bottom:0;">
+        <div>
+          <div class="section-title">Pro Spending Analytics</div>
+          <div class="section-sub">Insights converted to PKR</div>
+        </div>
+        <button onclick="openExpenseModal()" class="btn btn-primary btn-sm">+ Add Bill</button>
+      </div>
+
+      <div id="analyticsEmptyBox" class="empty-card hidden">
+        <div class="empty-icon-wrap">
+          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"/></svg>
+        </div>
+        <div class="empty-title">No Analytics Data Yet</div>
+        <p class="empty-desc">Log your first shared expense to unlock category donut breakdowns, member fair-share comparisons, and monthly trends.</p>
+        <button onclick="openExpenseModal()" class="btn btn-primary btn-sm mt-3">+ Log First Expense</button>
+      </div>
+
+      <div id="analyticsContentBox" class="flex-col gap-3">
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="card" style="padding:13px;">
+            <div class="net-label">Total Expense Volume</div>
+            <div id="kpiTotalSpend" style="font-size:20px;font-weight:800;margin-top:4px;">Rs. 0</div>
+            <div id="kpiBillCount" class="section-sub mt-1" style="color:var(--primary-dark);font-weight:700;">0 bills</div>
+          </div>
+          <div class="card" style="padding:13px;">
+            <div class="net-label">Top Category</div>
+            <div id="kpiTopCat" class="truncate" style="font-size:15px;font-weight:800;margin-top:4px;">—</div>
+            <div id="kpiTopCatShare" class="section-sub mt-1">0% of total</div>
+          </div>
+        </div>
+
+        <!-- Pure SVG Category Donut Chart -->
+        <div class="card">
+          <div class="section-title">Spending by Category</div>
+          <div class="section-sub mb-3">Pro category share in PKR</div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <div id="categoryDonutWrap" class="flex items-center justify-center" style="width:155px;height:155px;margin:0 auto;"></div>
+            <div id="categoryLegendWrap" class="flex-1 flex-col gap-2" style="min-width:190px;"></div>
+          </div>
+        </div>
+
+        <!-- Paid vs Fair Share Member Comparison -->
+        <div class="card">
+          <div class="section-title">Paid vs. Fair Share</div>
+          <div class="section-sub mb-3">Green = Total Paid • Blue = Total Consumed Share</div>
+          <div id="memberComparisonWrap" class="flex-col gap-3"></div>
+        </div>
+
+        <!-- Monthly Spending Trend -->
+        <div class="card">
+          <div class="section-title">Monthly Spending Trend</div>
+          <div class="section-sub">Last 6 months expense volume (PKR)</div>
+          <div id="monthlyTrendWrap"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==================== TAB 5: CONTACTS & SETTINGS ==================== -->
+    <section id="tab-settings" class="tab-view hidden flex-col gap-3">
+      <!-- Contacts Directory -->
+      <div class="card">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Contacts &amp; Members</div>
+            <div class="section-sub">People you split bills with</div>
+          </div>
+          <button onclick="openContactModal()" class="btn btn-primary btn-sm">+ Add Contact</button>
+        </div>
+        <div id="contactsListContainer" class="list-stack"></div>
+      </div>
+
+      <!-- Multi-Currency Exchange Rates -->
+      <div class="card">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Multi-Currency Rates (to PKR)</div>
+            <div class="section-sub">Offline conversion rates used for all summaries</div>
+          </div>
+          <span class="tag tag-emerald">Base: PKR</span>
+        </div>
+        <div class="grid-2 mb-3">
+          <label class="flex items-center justify-between" style="background:var(--bg-page);padding:8px 12px;border-radius:12px;border:1px solid var(--border-color);font-size:13px;font-weight:700;">
+            <span>1 USD =</span>
+            <input id="rateUSD" type="number" step="0.1" style="width:78px;border:none;background:transparent;text-align:right;font-weight:800;font-size:14px;outline:none;" />
+          </label>
+          <label class="flex items-center justify-between" style="background:var(--bg-page);padding:8px 12px;border-radius:12px;border:1px solid var(--border-color);font-size:13px;font-weight:700;">
+            <span>1 AED =</span>
+            <input id="rateAED" type="number" step="0.1" style="width:78px;border:none;background:transparent;text-align:right;font-weight:800;font-size:14px;outline:none;" />
+          </label>
+          <label class="flex items-center justify-between" style="background:var(--bg-page);padding:8px 12px;border-radius:12px;border:1px solid var(--border-color);font-size:13px;font-weight:700;">
+            <span>1 SAR =</span>
+            <input id="rateSAR" type="number" step="0.1" style="width:78px;border:none;background:transparent;text-align:right;font-weight:800;font-size:14px;outline:none;" />
+          </label>
+          <label class="flex items-center justify-between" style="background:var(--bg-page);padding:8px 12px;border-radius:12px;border:1px solid var(--border-color);font-size:13px;font-weight:700;">
+            <span>1 GBP =</span>
+            <input id="rateGBP" type="number" step="0.1" style="width:78px;border:none;background:transparent;text-align:right;font-weight:800;font-size:14px;outline:none;" />
+          </label>
+        </div>
+        <button onclick="saveCurrencyRates()" class="btn btn-primary w-full">Save Exchange Rates</button>
+      </div>
+
+      <!-- Data Export, Backup & Clear All -->
+      <div class="card">
+        <div class="section-header">
+          <div>
+            <div class="section-title">Backup, Export &amp; Reset</div>
+            <div class="section-sub">100% offline local storage vault</div>
+          </div>
+        </div>
+        <div class="grid-2 mb-2">
+          <button onclick="exportToCSV()" class="btn btn-light btn-sm">Export Excel / CSV</button>
+          <button onclick="openWhatsAppModal()" class="btn btn-green btn-sm">WhatsApp Report</button>
+          <button onclick="exportJSONBackup()" class="btn btn-dark btn-sm">Download JSON Backup</button>
+          <label class="btn btn-light btn-sm" style="cursor:pointer;">
+            Restore JSON
+            <input type="file" accept=".json" onchange="importJSONBackup(event)" class="hidden" />
+          </label>
+        </div>
+        <button onclick="promptClearAllData()" class="btn btn-danger-soft w-full btn-sm mt-1">Clear All Data (Reset Blank)</button>
+      </div>
+
+      <!-- About & Developer Information Section -->
+      <div id="aboutDeveloperCard" class="card" style="background:linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);border-color:var(--primary-border);">
+        <div class="section-header">
+          <div>
+            <div class="section-title">About &amp; Developer</div>
+            <div class="section-sub">SplitPro — Offline Shared Expense &amp; Partnership Ledger</div>
+          </div>
+          <span class="tag tag-emerald">v1.0 Pro</span>
+        </div>
+
+        <!-- Developer Profile Banner -->
+        <div class="flex items-center gap-3" style="background:#ffffff;padding:12px;border-radius:16px;border:1px solid var(--border-color);">
+          <div style="width:48px;height:48px;border-radius:16px;background:linear-gradient(135deg,#059669,#0d9488);color:#ffffff;font-size:17px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            AB
+          </div>
+          <div class="flex-1">
+            <div class="flex items-center gap-1-5 flex-wrap">
+              <span style="font-size:16px;font-weight:800;color:var(--text-main);">Adnan Babar</span>
+              <span class="tag tag-teal" style="font-size:10px;">Creator &amp; Developer</span>
+            </div>
+            <div class="section-sub mt-1">📍 Rawalpindi, Pakistan</div>
+            <div class="section-sub" style="font-weight:700;color:var(--primary-dark);">📞 03005115522</div>
+          </div>
+        </div>
+
+        <!-- Direct Call, WhatsApp & Copy Number Actions -->
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:10px;">
+          <a href="tel:03005115522" class="btn btn-dark btn-sm" style="text-decoration:none;">
+            📞 Call
+          </a>
+          <a href="https://wa.me/923005115522?text=Assalam-o-Alaikum%20Adnan%20Babar%2C%20I%20am%20contacting%20you%20regarding%20the%20SplitPro%20app." target="_blank" rel="noopener noreferrer" class="btn btn-green btn-sm" style="text-decoration:none;">
+            💬 WhatsApp
+          </a>
+          <button type="button" onclick="copyDeveloperPhone()" class="btn btn-light btn-sm">
+            📋 Copy No.
+          </button>
+        </div>
+
+        <!-- App Description & Pro Capabilities -->
+        <div style="background:#ffffff;padding:12px;border-radius:16px;border:1px solid var(--border-color);margin-top:10px;">
+          <div style="font-size:12px;font-weight:800;color:var(--text-main);margin-bottom:4px;">About SplitPro (Version 1.0)</div>
+          <p class="section-sub" style="line-height:1.5;">
+            Designed and built by <b>Adnan Babar</b> for effortless, 100% offline shared expense tracking, roommate bills, trips, and business partnership ledgers without subscriptions or internet dependency.
+          </p>
+          <div class="flex flex-wrap gap-1-5 mt-2">
+            <span class="tag">Multi-Payer</span>
+            <span class="tag">Equal / Exact / % / Shares</span>
+            <span class="tag">Smart Debt Simplification</span>
+            <span class="tag">PKR / USD / AED / SAR / GBP</span>
+            <span class="tag">Receipt Compression</span>
+            <span class="tag">SVG Analytics</span>
+            <span class="tag">English + اردو WhatsApp</span>
+            <span class="tag">JSON / CSV Backup</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ==================== FLOATING ACTION BUTTON (+) ==================== -->
+  <button onclick="openExpenseModal()" class="fab-add" aria-label="Add Expense" title="Add Expense">
+    <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2.6" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+    </svg>
+  </button>
+
+  <!-- ==================== BOTTOM NAVIGATION BAR ==================== -->
+  <nav class="bottom-nav" aria-label="Main Navigation">
+    <div class="nav-inner">
+      <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-btn active">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/></svg>
+        <span>Dashboard</span>
+      </button>
+      <button onclick="switchTab('groups')" data-tab="groups" class="nav-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+        <span>Groups</span>
+      </button>
+      <button onclick="switchTab('activity')" data-tab="activity" class="nav-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z"/></svg>
+        <span>Activity</span>
+      </button>
+      <button onclick="switchTab('analytics')" data-tab="analytics" class="nav-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 6a7.5 7.5 0 1 0 7.5 7.5h-7.5V6Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5H21A7.5 7.5 0 0 0 13.5 3v7.5Z"/></svg>
+        <span>Analytics</span>
+      </button>
+      <button onclick="switchTab('settings')" data-tab="settings" class="nav-btn">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.1" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z"/></svg>
+        <span>Contacts</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ==================== MODAL 1: ADD / EDIT EXPENSE ==================== -->
+  <div id="expenseModal" class="modal-backdrop hidden">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div>
+          <div id="expenseModalTitle" class="section-title">Add Shared Expense</div>
+          <div class="section-sub">Multi-payer &amp; 4 flexible split modes</div>
+        </div>
+        <button onclick="closeModal('expenseModal')" class="close-btn" aria-label="Close">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="editExpenseId" value="" />
+
+        <!-- Group (Optional: 1-on-1 or Group) & Category -->
+        <div class="grid-2">
+          <div>
+            <label class="label">Group (Optional)</label>
+            <select id="expGroupSelect" onchange="onExpenseGroupChange()" class="select"></select>
+          </div>
+          <div>
+            <label class="label">Category</label>
+            <select id="expCategorySelect" class="select">
+              <option value="Food & Dining">🍽️ Food &amp; Dining</option>
+              <option value="Groceries">🛒 Groceries</option>
+              <option value="Transport & Fuel">⛽ Transport &amp; Fuel</option>
+              <option value="Utilities & Bills">💡 Utilities &amp; Bills</option>
+              <option value="Rent">🏠 Rent</option>
+              <option value="Supplies & Inventory">📦 Supplies &amp; Inventory</option>
+              <option value="Travel">✈️ Travel</option>
+              <option value="Other">🔖 Other</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="label">Description *</label>
+          <input id="expDescription" type="text" placeholder="e.g., Dinner, Electricity Bill, Diesel, Groceries" class="input" />
+        </div>
+
+        <!-- Currency & Total Amount -->
+        <div class="grid-3-7">
+          <div>
+            <label class="label">Currency</label>
+            <select id="expCurrencySelect" onchange="recalculateSplitUI()" class="select" style="font-weight:700;">
+              <option value="PKR">PKR (Rs.)</option>
+              <option value="USD">USD ($)</option>
+              <option value="AED">AED</option>
+              <option value="SAR">SAR</option>
+              <option value="GBP">GBP (£)</option>
+            </select>
+          </div>
+          <div>
+            <label class="label">Total Amount *</label>
+            <input id="expAmount" type="number" step="0.01" min="0" oninput="recalculateSplitUI()" placeholder="0.00" class="input" style="font-size:16px;font-weight:800;background:var(--primary-light);border-color:var(--primary-border);" />
+          </div>
+        </div>
+
+        <div id="pkrConversionHint" class="hidden tag tag-emerald" style="padding:7px 10px;"></div>
+
+        <!-- Date & Recurring -->
+        <div class="grid-2">
+          <div>
+            <label class="label">Date</label>
+            <input id="expDate" type="date" class="input" />
+          </div>
+          <div>
+            <label class="label">Recurring</label>
+            <select id="expRecurring" class="select">
+              <option value="One-time">One-time</option>
+              <option value="Weekly">Weekly</option>
+              <option value="Monthly">Monthly</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Paid By (Single or Multiple Payers) -->
+        <div class="sub-panel">
+          <div class="flex items-center justify-between">
+            <span class="net-label" style="color:var(--text-main);">Paid By</span>
+            <div class="seg-group two-col">
+              <button type="button" id="payerModeSingleBtn" onclick="setPayerMode('single')" class="seg-btn active">Single Payer</button>
+              <button type="button" id="payerModeMultiBtn" onclick="setPayerMode('multi')" class="seg-btn">Multiple Payers</button>
+            </div>
+          </div>
+
+          <div id="singlePayerBox">
+            <select id="singlePayerSelect" class="select" style="background:#ffffff;font-weight:700;"></select>
+          </div>
+
+          <div id="multiPayerBox" class="hidden flex-col gap-2">
+            <div id="multiPayerInputs" class="flex-col gap-2"></div>
+            <div id="payerValidationMsg" class="text-right" style="font-size:12px;font-weight:700;"></div>
+          </div>
+        </div>
+
+        <!-- Split Between (=, Rs., %, Shares) -->
+        <div class="sub-panel">
+          <div class="flex items-center justify-between">
+            <span class="net-label" style="color:var(--text-main);">Split Mode</span>
+            <span id="splitValidationBadge" class="tag tag-emerald">Balanced</span>
+          </div>
+
+          <div class="seg-group">
+            <button type="button" onclick="setSplitMode('equal')" data-split="equal" class="seg-btn split-mode-btn active">= Equal</button>
+            <button type="button" onclick="setSplitMode('exact')" data-split="exact" class="seg-btn split-mode-btn">Rs. Exact</button>
+            <button type="button" onclick="setSplitMode('percent')" data-split="percent" class="seg-btn split-mode-btn">% Percent</button>
+            <button type="button" onclick="setSplitMode('shares')" data-split="shares" class="seg-btn split-mode-btn">⚖️ Shares</button>
+          </div>
+
+          <div id="noOtherContactsHint" class="hidden" style="background:var(--amber-light);border:1px solid #fde68a;border-radius:12px;padding:10px;font-size:12px;color:#92400e;">
+            Only <b>You</b> exist in Contacts right now. Add a friend or partner first to split bills with them.
+            <button type="button" onclick="openContactModal()" class="btn btn-dark btn-xs mt-2">+ Add Contact Now</button>
+          </div>
+
+          <div id="splitMembersList" class="flex-col gap-2"></div>
+        </div>
+
+        <!-- Notes & Compressed Receipt Photo -->
+        <div>
+          <label class="label">Notes / Memo</label>
+          <input id="expNotes" type="text" placeholder="Optional invoice #, shop name, or memo..." class="input" />
+        </div>
+
+        <div>
+          <label class="label">Attach Receipt Image (Auto-Compressed)</label>
+          <div class="flex items-center gap-3">
+            <label class="btn btn-light btn-sm" style="cursor:pointer;">
+              📷 Choose Photo
+              <input id="expReceiptInput" type="file" accept="image/*" onchange="handleReceiptUpload(event)" class="hidden" />
+            </label>
+            <div id="receiptPreviewBox" class="hidden flex items-center gap-2">
+              <img id="receiptThumbImg" src="" alt="Receipt thumbnail" style="width:42px;height:42px;border-radius:10px;object-fit:cover;border:1px solid var(--border-color);" />
+              <button type="button" onclick="removeReceiptImage()" class="btn btn-danger-soft btn-xs">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" onclick="closeModal('expenseModal')" class="btn btn-light" style="width:34%;">Cancel</button>
+        <button type="button" onclick="saveExpense()" class="btn btn-primary" style="width:66%;">Save Expense</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: CREATE / EDIT GROUP ==================== -->
+  <div id="groupModal" class="modal-backdrop hidden">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div id="groupModalTitle" class="section-title">Create Group</div>
+        <button onclick="closeModal('groupModal')" class="close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editGroupId" value="" />
+        <div>
+          <label class="label">Group Name *</label>
+          <input id="groupNameInput" type="text" placeholder="e.g., Apartment 4B, Northern Areas Trip, Shop" class="input" />
+        </div>
+        <div>
+          <label class="label">Icon / Category</label>
+          <select id="groupCategoryInput" class="select">
+            <option value="🏠 Home & Roommates">🏠 Home &amp; Roommates</option>
+            <option value="✈️ Trip & Travel">✈️ Trip &amp; Travel</option>
+            <option value="💼 Business & Partnership">💼 Business &amp; Partnership</option>
+            <option value="🍽️ Food & Outings">🍽️ Food &amp; Outings</option>
+            <option value="📁 General Shared">📁 General Shared</option>
+          </select>
+        </div>
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="label" style="margin:0;">Select Members *</label>
+            <button type="button" onclick="openContactModal()" class="btn btn-light btn-xs">+ New Contact</button>
+          </div>
+          <div id="groupMembersCheckboxes" class="sub-panel" style="max-height:190px;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeModal('groupModal')" class="btn btn-light" style="width:34%;">Cancel</button>
+        <button onclick="saveGroup()" class="btn btn-primary" style="width:66%;">Save Group</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: ADD / EDIT CONTACT ==================== -->
+  <div id="contactModal" class="modal-backdrop hidden">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div id="contactModalTitle" class="section-title">Add Contact</div>
+        <button onclick="closeModal('contactModal')" class="close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="editContactId" value="" />
+        <div>
+          <label class="label">Full Name *</label>
+          <input id="contactNameInput" type="text" placeholder="Enter person's name" class="input" />
+        </div>
+        <div>
+          <label class="label">Phone / WhatsApp Number (Optional)</label>
+          <input id="contactPhoneInput" type="tel" placeholder="e.g., 923001234567" class="input" />
+        </div>
+        <div>
+          <label class="label">Note / Role (Optional)</label>
+          <input id="contactNoteInput" type="text" placeholder="e.g., Roommate, Partner, Friend" class="input" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeModal('contactModal')" class="btn btn-light" style="width:34%;">Cancel</button>
+        <button onclick="saveContact()" class="btn btn-dark" style="width:66%;">Save Contact</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 4: SETTLE UP PAYMENT ==================== -->
+  <div id="settleModal" class="modal-backdrop hidden">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="section-title">Record Settlement</div>
+        <button onclick="closeModal('settleModal')" class="close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <div>
+            <label class="label">Payer (From)</label>
+            <select id="settleFromSelect" class="select" style="font-weight:700;"></select>
+          </div>
+          <div>
+            <label class="label">Receiver (To)</label>
+            <select id="settleToSelect" class="select" style="font-weight:700;"></select>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <label class="label">Amount (PKR) *</label>
+            <input id="settleAmountInput" type="number" step="0.01" min="0" placeholder="0.00" class="input" style="font-weight:800;background:var(--primary-light);" />
+          </div>
+          <div>
+            <label class="label">Group Scope</label>
+            <select id="settleGroupSelect" class="select"></select>
+          </div>
+        </div>
+        <div>
+          <label class="label">Payment Note (Optional)</label>
+          <input id="settleNoteInput" type="text" placeholder="e.g., Bank Transfer, JazzCash, Cash" class="input" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeModal('settleModal')" class="btn btn-light" style="width:34%;">Cancel</button>
+        <button onclick="confirmSettlement()" class="btn btn-teal" style="width:66%;">Confirm Payment</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 5: BILINGUAL WHATSAPP SHARE ==================== -->
+  <div id="whatsappModal" class="modal-backdrop hidden">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div>
+          <div class="section-title">WhatsApp Statement</div>
+          <div class="section-sub">Clean bilingual English + Urdu summary</div>
+        </div>
+        <button onclick="closeModal('whatsappModal')" class="close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="grid-2">
+          <button type="button" id="waLangBi" onclick="generateWhatsAppText('bilingual')" class="btn btn-green btn-sm">English + اردو</button>
+          <button type="button" id="waLangEn" onclick="generateWhatsAppText('en')" class="btn btn-light btn-sm">English Only</button>
+        </div>
+        <textarea id="whatsappMessagePreview" rows="9" class="textarea" style="font-family:monospace;font-size:12px;"></textarea>
+      </div>
+      <div class="modal-footer">
+        <button onclick="copyWhatsAppText()" class="btn btn-dark" style="width:45%;">Copy Text</button>
+        <button onclick="launchWhatsAppApp()" class="btn btn-green" style="width:55%;">Share on WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 6: CONFIRMATION DIALOG (NO alert/confirm) ==================== -->
+  <div id="confirmModal" class="modal-backdrop hidden">
+    <div class="modal-sheet" style="max-width:420px;">
+      <div class="modal-header">
+        <div id="confirmModalTitle" class="section-title">Confirm Action</div>
+        <button onclick="closeModal('confirmModal')" class="close-btn">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirmModalMessage" class="section-sub" style="font-size:13px;color:var(--text-main);"></p>
+      </div>
+      <div class="modal-footer">
+        <button onclick="closeModal('confirmModal')" class="btn btn-light" style="width:45%;">Cancel</button>
+        <button id="confirmModalYesBtn" class="btn btn-danger-soft" style="width:55%;font-weight:800;">Yes, Proceed</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 7: RECEIPT LIGHTBOX ==================== -->
+  <div id="lightboxModal" onclick="closeModal('lightboxModal')" class="modal-backdrop hidden" style="align-items:center;padding:16px;">
+    <div class="card" style="max-width:460px;width:100%;" onclick="event.stopPropagation()">
+      <div class="flex items-center justify-between mb-2">
+        <span id="lightboxTitle" class="section-title" style="font-size:14px;">Attached Receipt</span>
+        <button onclick="closeModal('lightboxModal')" class="btn btn-light btn-xs">Close</button>
+      </div>
+      <img id="lightboxImg" src="" alt="Receipt full view" style="width:100%;max-height:70vh;object-fit:contain;border-radius:14px;background:var(--bg-muted);" />
+    </div>
+  </div>
+
+  <!-- ==================== TOAST NOTIFICATION ==================== -->
+  <div id="toastBox" class="toast hidden"></div>
+
+  <!-- ==================== APPLICATION JAVASCRIPT ==================== -->
+  <script>
+    /**
+     * SplitPro Offline Storage & Zero-Predefined-Data Architecture
+     * Starts completely empty with only the default user ("You").
+     */
+    const STORAGE_KEY = 'splitpro_offline_clean_v1';
+    const DEFAULT_USER_ID = 'user_you';
+
+    const CATEGORY_COLORS = {
+      'Food & Dining': '#059669',
+      'Groceries': '#10b981',
+      'Transport & Fuel': '#d97706',
+      'Utilities & Bills': '#7c3aed',
+      'Rent': '#0d9488',
+      'Supplies & Inventory': '#0284c7',
+      'Travel': '#2563eb',
+      'Other': '#64748b'
+    };
+
+    const CURRENCY_SYMBOLS = {
+      PKR: 'Rs.',
+      USD: '$',
+      AED: 'AED',
+      SAR: 'SAR',
+      GBP: '£'
+    };
+
+    function createBlankState() {
+      return {
+        currentUserId: DEFAULT_USER_ID,
+        ratesToPKR: {
+          PKR: 1,
+          USD: 278.5,
+          AED: 75.8,
+          SAR: 74.2,
+          GBP: 354.0
+        },
+        contacts: [
+          { id: DEFAULT_USER_ID, name: 'You', phone: '', note: 'Default Account' }
+        ],
+        groups: [],
+        expenses: [],
+        settlements: []
+      };
+    }
+
+    let appState = loadState();
+    let activeTab = 'dashboard';
+    let activeGroupDetailId = null;
+    let modalPayerMode = 'single';
+    let modalSplitMode = 'equal';
+    let tempReceiptBase64 = '';
+    let pendingConfirmCallback = null;
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.contacts) && Array.isArray(parsed.groups) && Array.isArray(parsed.expenses)) {
+            if (!Array.isArray(parsed.settlements)) parsed.settlements = [];
+            if (!parsed.contacts.length) {
+              parsed.contacts = [{ id: DEFAULT_USER_ID, name: 'You', phone: '', note: 'Default Account' }];
+              parsed.currentUserId = DEFAULT_USER_ID;
+            }
+            return parsed;
+          }
+        }
+      } catch (err) {
+        console.error('Storage read error:', err);
+      }
+      const blank = createBlankState();
+      saveState(blank);
+      return blank;
+    }
+
+    function saveState(state = appState) {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (err) {
+        showToast('Storage limit reached. Remove large receipt images.');
+      }
+    }
+
+    // ==================== FORMATTERS & HELPERS ====================
+    function formatPKR(val) {
+      const num = Math.round((Number(val) || 0) * 100) / 100;
+      const absStr = Math.abs(num).toLocaleString('en-PK', {
+        minimumFractionDigits: num % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2
+      });
+      return (num < 0 ? '-Rs. ' : 'Rs. ') + absStr;
+    }
+
+    function formatCurrency(val, currency = 'PKR') {
+      const sym = CURRENCY_SYMBOLS[currency] || currency;
+      const num = Math.round((Number(val) || 0) * 100) / 100;
+      return `${sym} ${num.toLocaleString('en-US', {
+        minimumFractionDigits: num % 1 === 0 ? 0 : 2,
+        maximumFractionDigits: 2
+      })}`;
+    }
+
+    function getContactName(id) {
+      const c = appState.contacts.find(x => x.id === id);
+      return c ? c.name : 'Unknown';
+    }
+
+    function getGroupName(id) {
+      if (!id || id === 'DIRECT') return '1-on-1 Direct';
+      const g = appState.groups.find(x => x.id === id);
+      return g ? g.name : '1-on-1 Direct';
+    }
+
+    function escapeHtml(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function showToast(msg) {
+      const box = document.getElementById('toastBox');
+      box.textContent = msg;
+      box.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => box.classList.add('hidden'), 2700);
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function openConfirmDialog(title, message, onConfirm) {
+      document.getElementById('confirmModalTitle').textContent = title;
+      document.getElementById('confirmModalMessage').textContent = message;
+      pendingConfirmCallback = onConfirm;
+      document.getElementById('confirmModal').classList.remove('hidden');
+    }
+
+    document.getElementById('confirmModalYesBtn').onclick = function() {
+      closeModal('confirmModal');
+      if (typeof pendingConfirmCallback === 'function') {
+        pendingConfirmCallback();
+        pendingConfirmCallback = null;
+      }
+    };
+
+    // ==================== UNIFIED LEDGER & DEBT SIMPLIFICATION ====================
+    function getCombinedLedger(groupIdFilter = null) {
+      const expItems = appState.expenses.map(e => ({ ...e, entryType: 'expense' }));
+      const stlItems = appState.settlements.map(s => ({
+        ...s,
+        entryType: 'settlement',
+        payers: [{ memberId: s.from, amount: s.amount }],
+        splits: [{ memberId: s.to, amount: s.amount }]
+      }));
+
+      let combined = [...expItems, ...stlItems];
+      if (groupIdFilter && groupIdFilter !== 'ALL') {
+        combined = combined.filter(item => (item.groupId || 'DIRECT') === groupIdFilter);
+      }
+      return combined.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
+    /**
+     * Net Balance Engine (converted to PKR)
+     * Positive = person paid more than their share (is owed money)
+     * Negative = person paid less than their share (owes money)
+     */
+    function calculateNetBalances(entries) {
+      const net = {};
+      appState.contacts.forEach(c => { net[c.id] = 0; });
+
+      entries.forEach(item => {
+        const rate = appState.ratesToPKR[item.currency || 'PKR'] || 1;
+        (item.payers || []).forEach(p => {
+          if (net[p.memberId] === undefined) net[p.memberId] = 0;
+          net[p.memberId] += (Number(p.amount) || 0) * rate;
+        });
+        (item.splits || []).forEach(s => {
+          if (net[s.memberId] === undefined) net[s.memberId] = 0;
+          net[s.memberId] -= (Number(s.amount) || 0) * rate;
+        });
+      });
+
+      Object.keys(net).forEach(k => {
+        net[k] = Math.round(net[k] * 100) / 100;
+        if (Math.abs(net[k]) < 0.5) net[k] = 0;
+      });
+      return net;
+    }
+
+    /**
+     * Greedy Min-Cash-Flow Debt Simplification
+     */
+    function simplifyDebts(netMap) {
+      const debtors = [];
+      const creditors = [];
+
+      Object.entries(netMap).forEach(([memberId, bal]) => {
+        if (bal < -0.5) debtors.push({ memberId, amount: Math.abs(bal) });
+        else if (bal > 0.5) creditors.push({ memberId, amount: bal });
+      });
+
+      debtors.sort((a, b) => b.amount - a.amount);
+      creditors.sort((a, b) => b.amount - a.amount);
+
+      const transfers = [];
+      let i = 0, j = 0;
+
+      while (i < debtors.length && j < creditors.length) {
+        const amt = Math.min(debtors[i].amount, creditors[j].amount);
+        if (amt >= 1) {
+          transfers.push({
+            from: debtors[i].memberId,
+            to: creditors[j].memberId,
+            amount: Math.round(amt)
+          });
+        }
+        debtors[i].amount -= amt;
+        creditors[j].amount -= amt;
+        if (debtors[i].amount < 0.5) i++;
+        if (creditors[j].amount < 0.5) j++;
+      }
+      return transfers;
+    }
+
+    // ==================== MASTER RENDER ====================
+    function renderAll() {
+      populateHeaderUserSelect();
+      renderDashboardTab();
+      renderGroupsTab();
+      renderActivityTab();
+      renderAnalyticsTab();
+      renderSettingsTab();
+    }
+
+    function populateHeaderUserSelect() {
+      const sel = document.getElementById('currentUserSelect');
+      sel.innerHTML = appState.contacts.map(c =>
+        `<option value="${c.id}" ${c.id === appState.currentUserId ? 'selected' : ''}>👤 ${escapeHtml(c.name)}</option>`
+      ).join('');
+    }
+
+    function renderDashboardTab() {
+      const allEntries = getCombinedLedger('ALL');
+      const net = calculateNetBalances(allEntries);
+      const transfers = simplifyDebts(net);
+      const me = appState.currentUserId;
+
+      let owedToMe = 0;
+      let iOwe = 0;
+      transfers.forEach(tx => {
+        if (tx.to === me) owedToMe += tx.amount;
+        if (tx.from === me) iOwe += tx.amount;
+      });
+
+      const myNet = net[me] || 0;
+      const netEl = document.getElementById('netBalanceDisplay');
+      const badgeEl = document.getElementById('netStatusBadge');
+
+      if (myNet > 0.5) {
+        netEl.textContent = `+${formatPKR(myNet)}`;
+        netEl.style.color = '#059669';
+        badgeEl.textContent = 'You Get Back';
+        badgeEl.className = 'status-pill positive';
+      } else if (myNet < -0.5) {
+        netEl.textContent = formatPKR(myNet);
+        netEl.style.color = '#e11d48';
+        badgeEl.textContent = 'You Owe';
+        badgeEl.className = 'status-pill negative';
+      } else {
+        netEl.textContent = 'Rs. 0';
+        netEl.style.color = '#0f172a';
+        badgeEl.textContent = 'All Settled';
+        badgeEl.className = 'status-pill';
+      }
+
+      document.getElementById('youAreOwedDisplay').textContent = formatPKR(owedToMe);
+      document.getElementById('youOweDisplay').textContent = formatPKR(iOwe);
+
+      const isCompletelyEmpty = appState.groups.length === 0 && allEntries.length === 0;
+      document.getElementById('dashboardOnboarding').classList.toggle('hidden', !isCompletelyEmpty);
+      document.getElementById('dashboardDebtsCard').classList.toggle('hidden', isCompletelyEmpty);
+      document.getElementById('dashboardRecentCard').classList.toggle('hidden', isCompletelyEmpty);
+
+      // Simplified Debts on Dashboard
+      const debtsEl = document.getElementById('simplifiedDebtsList');
+      if (!transfers.length) {
+        debtsEl.innerHTML = `<div style="background:var(--primary-light);border:1px solid var(--primary-border);border-radius:14px;padding:12px;text-align:center;font-size:12px;font-weight:700;color:var(--primary-dark);">All balances are settled up!</div>`;
+      } else {
+        debtsEl.innerHTML = transfers.map(tx => `
+          <div class="item-card flex items-center justify-between gap-2" style="background:var(--bg-page);">
+            <div>
+              <div style="font-size:13px;">
+                <b style="color:#e11d48;">${escapeHtml(getContactName(tx.from))}</b>
+                <span style="color:var(--text-secondary);"> pays </span>
+                <b style="color:#047857;">${escapeHtml(getContactName(tx.to))}</b>
+              </div>
+              <div style="font-size:16px;font-weight:800;margin-top:2px;">${formatPKR(tx.amount)}</div>
+            </div>
+            <button onclick="openSettleModal('${tx.from}', '${tx.to}', ${tx.amount})" class="btn btn-teal btn-sm">Settle Up</button>
+          </div>
+        `).join('');
+      }
+
+      // Recent 4 Entries
+      const recentEl = document.getElementById('dashboardRecentList');
+      if (!allEntries.length) {
+        recentEl.innerHTML = `<p class="section-sub text-center" style="padding:10px 0;">No expenses logged yet.</p>`;
+      } else {
+        recentEl.innerHTML = allEntries.slice(0, 4).map(item => renderLedgerItemCard(item)).join('');
+      }
+    }
+
+    function renderGroupsTab() {
+      if (activeGroupDetailId) {
+        renderGroupDetailView(activeGroupDetailId);
+        return;
+      }
+      document.getElementById('groupsListView').classList.remove('hidden');
+      document.getElementById('groupDetailView').classList.add('hidden');
+
+      const container = document.getElementById('groupsContainer');
+      if (!appState.groups.length) {
+        container.innerHTML = `
+          <div class="empty-card">
+            <div class="empty-icon-wrap">
+              <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"/></svg>
+            </div>
+            <div class="empty-title">No Groups Created Yet</div>
+            <p class="empty-desc">Create a group for roommates, trips, or shared business expenses to track balances together.</p>
+            <button onclick="openGroupModal()" class="btn btn-primary btn-sm mt-3">+ Create First Group</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = appState.groups.map(g => {
+        const gEntries = getCombinedLedger(g.id);
+        const gExps = gEntries.filter(x => x.entryType === 'expense');
+        const totalSpend = gExps.reduce((sum, e) => sum + e.amount * (appState.ratesToPKR[e.currency] || 1), 0);
+        const net = calculateNetBalances(gEntries);
+        const myBal = net[appState.currentUserId] || 0;
+        const memberNames = g.memberIds.map(id => getContactName(id)).join(', ');
+
+        let balHtml = `<span class="section-sub" style="font-weight:700;">Settled up</span>`;
+        if (myBal > 0.5) balHtml = `<span style="font-size:12px;font-weight:800;color:#059669;">You get ${formatPKR(myBal)}</span>`;
+        else if (myBal < -0.5) balHtml = `<span style="font-size:12px;font-weight:800;color:#e11d48;">You owe ${formatPKR(Math.abs(myBal))}</span>`;
+
+        return `
+          <div class="item-card">
+            <div onclick="openGroupDetail('${g.id}')" style="cursor:pointer;">
+              <div class="flex items-center justify-between gap-2">
+                <span class="tag">${escapeHtml(g.category || 'Group')}</span>
+                <span class="section-sub">${gEntries.length} entries</span>
+              </div>
+              <div class="section-title mt-1-5">${escapeHtml(g.name)}</div>
+              <div class="section-sub truncate mt-1">Members: ${escapeHtml(memberNames)}</div>
+            </div>
+            <div class="flex items-center justify-between mt-3" style="padding-top:10px;border-top:1px solid var(--border-color);">
+              <div>
+                <div class="net-label">Total Spend</div>
+                <div style="font-size:14px;font-weight:800;">${formatPKR(totalSpend)}</div>
+              </div>
+              <div class="text-right">
+                ${balHtml}
+                <div class="flex gap-1-5 mt-1">
+                  <button onclick="openExpenseModal('${g.id}')" class="btn btn-primary-soft btn-xs">+ Expense</button>
+                  <button onclick="openGroupDetail('${g.id}')" class="btn btn-light btn-xs">Open</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function openGroupDetail(groupId) {
+      activeGroupDetailId = groupId;
+      switchTab('groups');
+      renderGroupDetailView(groupId);
+    }
+
+    function closeGroupDetail() {
+      activeGroupDetailId = null;
+      renderGroupsTab();
+    }
+
+    function renderGroupDetailView(groupId) {
+      const group = appState.groups.find(g => g.id === groupId);
+      if (!group) {
+        activeGroupDetailId = null;
+        return renderGroupsTab();
+      }
+
+      document.getElementById('groupsListView').classList.add('hidden');
+      document.getElementById('groupDetailView').classList.remove('hidden');
+
+      const entries = getCombinedLedger(groupId);
+      const expensesOnly = entries.filter(e => e.entryType === 'expense');
+      const totalSpend = expensesOnly.reduce((s, e) => s + e.amount * (appState.ratesToPKR[e.currency] || 1), 0);
+      const net = calculateNetBalances(entries);
+      const simplified = simplifyDebts(net);
+
+      document.getElementById('gdCategoryTag').textContent = group.category || 'Shared Group';
+      document.getElementById('gdTitle').textContent = group.name;
+      document.getElementById('gdMembersText').textContent = 'Members: ' + group.memberIds.map(id => getContactName(id)).join(', ');
+      document.getElementById('gdTotalSpend').textContent = formatPKR(totalSpend);
+
+      document.getElementById('gdEditBtn').onclick = () => openGroupModal(group.id);
+      document.getElementById('gdDeleteBtn').onclick = () => deleteGroup(group.id);
+      document.getElementById('gdAddExpenseBtn').onclick = () => openExpenseModal(group.id);
+      document.getElementById('gdSettleBtn').onclick = () => openSettleModal(null, null, '', group.id);
+
+      const balList = document.getElementById('gdBalancesList');
+      if (!simplified.length) {
+        balList.innerHTML = `<div style="background:var(--primary-light);border:1px solid var(--primary-border);border-radius:12px;padding:12px;text-align:center;font-size:12px;font-weight:700;color:var(--primary-dark);">Everyone in this group is settled up!</div>`;
+      } else {
+        balList.innerHTML = simplified.map(tx => `
+          <div class="item-card flex items-center justify-between gap-2" style="background:var(--bg-page);">
+            <div>
+              <div style="font-size:13px;"><b>${escapeHtml(getContactName(tx.from))}</b> pays <b>${escapeHtml(getContactName(tx.to))}</b></div>
+              <div style="font-size:15px;font-weight:800;color:var(--primary-dark);">${formatPKR(tx.amount)}</div>
+            </div>
+            <button onclick="openSettleModal('${tx.from}', '${tx.to}', ${tx.amount}, '${group.id}')" class="btn btn-teal btn-sm">Settle Up</button>
+          </div>
+        `).join('');
+      }
+
+      document.getElementById('gdFeedCount').textContent = `${entries.length} items`;
+      const feedList = document.getElementById('gdFeedList');
+      if (!entries.length) {
+        feedList.innerHTML = `<p class="section-sub text-center" style="padding:14px 0;">No expenses in this group yet. Tap <b>+ Add Expense</b> above.</p>`;
+      } else {
+        feedList.innerHTML = entries.map(item => renderLedgerItemCard(item)).join('');
+      }
+    }
+
+    function renderActivityTab() {
+      const gSel = document.getElementById('activityGroupFilter');
+      const prevG = gSel.value || 'ALL';
+      gSel.innerHTML = `<option value="ALL">All Groups &amp; Direct</option><option value="DIRECT">1-on-1 Direct Only</option>` +
+        appState.groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+      if ([...gSel.options].some(o => o.value === prevG)) gSel.value = prevG;
+
+      const query = document.getElementById('activitySearchInput').value.trim().toLowerCase();
+      document.getElementById('clearSearchBtn').classList.toggle('hidden', !query);
+
+      const typeFilter = document.getElementById('activityTypeFilter').value;
+      const groupFilter = gSel.value;
+
+      let list = getCombinedLedger(groupFilter);
+      if (typeFilter !== 'ALL') {
+        list = list.filter(x => x.entryType === typeFilter);
+      }
+      if (query) {
+        list = list.filter(item => {
+          const payersStr = (item.payers || []).map(p => getContactName(p.memberId)).join(' ');
+          const splitsStr = (item.splits || []).map(s => getContactName(s.memberId)).join(' ');
+          const hay = `${item.description || ''} ${item.category || ''} ${item.notes || ''} ${getGroupName(item.groupId)} ${payersStr} ${splitsStr}`.toLowerCase();
+          return hay.includes(query);
+        });
+      }
+
+      document.getElementById('activityCountSub').textContent = `${list.length} matching records`;
+      const container = document.getElementById('activityListContainer');
+
+      if (!list.length) {
+        container.innerHTML = `
+          <div class="empty-card">
+            <div class="empty-title">No Ledger Activity Yet</div>
+            <p class="empty-desc">All shared expenses and recorded settlements will appear here in chronological order.</p>
+            <button onclick="openExpenseModal()" class="btn btn-primary btn-sm mt-3">+ Add Expense</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = list.map(item => renderLedgerItemCard(item)).join('');
+    }
+
+    function renderLedgerItemCard(item) {
+      const isStl = item.entryType === 'settlement';
+      const currency = item.currency || 'PKR';
+      const rate = appState.ratesToPKR[currency] || 1;
+      const pkrHint = currency !== 'PKR' ? ` • ≈ ${formatPKR(item.amount * rate)}` : '';
+
+      const title = isStl
+        ? `${getContactName(item.from)} paid ${getContactName(item.to)}`
+        : item.description;
+
+      const paidByText = (item.payers || [])
+        .map(p => `${getContactName(p.memberId)} (${formatCurrency(p.amount, currency)})`)
+        .join(', ');
+
+      return `
+        <div class="item-card" style="${isStl ? 'background:var(--teal-light);border-color:#99f6e4;' : ''}">
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex-1">
+              <div class="flex items-center gap-1-5 flex-wrap">
+                <span class="tag ${isStl ? 'tag-teal' : ''}">${isStl ? '✅ Settlement' : escapeHtml(item.category)}</span>
+                <span style="font-size:11px;font-weight:700;color:var(--primary-dark);">${escapeHtml(getGroupName(item.groupId))}</span>
+                ${!isStl && item.recurring && item.recurring !== 'One-time' ? `<span class="tag tag-amber">↻ ${escapeHtml(item.recurring)}</span>` : ''}
+              </div>
+              <div style="font-size:14px;font-weight:800;margin-top:5px;">${escapeHtml(title)}</div>
+              <div class="section-sub mt-1">Paid by <b>${escapeHtml(paidByText)}</b></div>
+              ${item.notes ? `<div class="section-sub mt-1" style="font-style:italic;">"${escapeHtml(item.notes)}"</div>` : ''}
+            </div>
+            <div class="text-right shrink-0">
+              <div style="font-size:15px;font-weight:800;color:${isStl ? '#115e59' : 'var(--text-main)'};">${formatCurrency(item.amount, currency)}</div>
+              <div class="section-sub" style="font-size:11px;">${escapeHtml(item.date)}${pkrHint}</div>
+            </div>
+          </div>
+
+          <div class="flex items-center justify-between gap-2 flex-wrap mt-2" style="padding-top:8px;border-top:1px solid var(--border-color);">
+            <div class="flex items-center gap-1 flex-wrap">
+              ${(item.splits || []).map(s => `<span class="tag" style="font-size:10px;">${escapeHtml(getContactName(s.memberId))}: ${formatCurrency(s.amount, currency)}</span>`).join('')}
+            </div>
+            <div class="flex items-center gap-1-5" style="margin-left:auto;">
+              ${item.receiptImg ? `<button onclick="openLightbox('${item.id}')" class="btn btn-light btn-xs">🧾 Receipt</button>` : ''}
+              ${!isStl ? `<button onclick="openExpenseModal(null, '${item.id}')" class="btn btn-light btn-xs">Edit</button>` : ''}
+              <button onclick="deleteEntry('${item.id}', '${item.entryType}')" class="btn btn-danger-soft btn-xs">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderAnalyticsTab() {
+      const expenses = appState.expenses;
+      const emptyBox = document.getElementById('analyticsEmptyBox');
+      const contentBox = document.getElementById('analyticsContentBox');
+
+      if (!expenses.length) {
+        emptyBox.classList.remove('hidden');
+        contentBox.classList.add('hidden');
+        return;
+      }
+
+      emptyBox.classList.add('hidden');
+      contentBox.classList.remove('hidden');
+
+      const totalSpend = expenses.reduce((s, e) => s + e.amount * (appState.ratesToPKR[e.currency] || 1), 0);
+      document.getElementById('kpiTotalSpend').textContent = formatPKR(totalSpend);
+      document.getElementById('kpiBillCount').textContent = `${expenses.length} shared bill${expenses.length === 1 ? '' : 's'}`;
+
+      const catTotals = {};
+      expenses.forEach(e => {
+        const pkr = e.amount * (appState.ratesToPKR[e.currency] || 1);
+        catTotals[e.category] = (catTotals[e.category] || 0) + pkr;
+      });
+
+      const sortedCats = Object.entries(catTotals).sort((a, b) => b[1] - a[1]);
+      if (sortedCats.length) {
+        document.getElementById('kpiTopCat').textContent = sortedCats[0][0];
+        const pct = totalSpend > 0 ? Math.round((sortedCats[0][1] / totalSpend) * 100) : 0;
+        document.getElementById('kpiTopCatShare').textContent = `${pct}% (${formatPKR(sortedCats[0][1])})`;
+      }
+
+      // Pure SVG Donut Chart
+      const radius = 52;
+      const circumference = 2 * Math.PI * radius;
+      let offset = 0;
+      const circles = sortedCats.map(([cat, val]) => {
+        const slice = totalSpend > 0 ? (val / totalSpend) * circumference : 0;
+        const color = CATEGORY_COLORS[cat] || '#64748b';
+        const c = `<circle r="${radius}" cx="75" cy="75" fill="transparent" stroke="${color}" stroke-width="22" stroke-dasharray="${slice} ${circumference - slice}" stroke-dashoffset="-${offset}" />`;
+        offset += slice;
+        return c;
+      }).join('');
+
+      document.getElementById('categoryDonutWrap').innerHTML = `
+        <svg viewBox="0 0 150 150" width="145" height="145" style="transform:rotate(-90deg);">
+          ${circles}
+        </svg>
+      `;
+
+      document.getElementById('categoryLegendWrap').innerHTML = sortedCats.map(([cat, val]) => {
+        const pct = totalSpend > 0 ? Math.round((val / totalSpend) * 100) : 0;
+        const color = CATEGORY_COLORS[cat] || '#64748b';
+        return `
+          <div class="flex items-center justify-between gap-2" style="font-size:12px;">
+            <div class="flex items-center gap-1-5 truncate">
+              <span style="width:10px;height:10px;border-radius:3px;background:${color};flex-shrink:0;"></span>
+              <span class="truncate" style="font-weight:600;">${escapeHtml(cat)}</span>
+            </div>
+            <span class="shrink-0" style="font-weight:800;">${pct}% <span style="color:var(--text-muted);font-weight:500;">(${formatPKR(val)})</span></span>
+          </div>
+        `;
+      }).join('');
+
+      // Paid vs Fair Share Member Comparison
+      const paidMap = {};
+      const shareMap = {};
+      appState.contacts.forEach(c => { paidMap[c.id] = 0; shareMap[c.id] = 0; });
+
+      expenses.forEach(e => {
+        const rate = appState.ratesToPKR[e.currency] || 1;
+        e.payers.forEach(p => { paidMap[p.memberId] = (paidMap[p.memberId] || 0) + p.amount * rate; });
+        e.splits.forEach(s => { shareMap[s.memberId] = (shareMap[s.memberId] || 0) + s.amount * rate; });
+      });
+
+      const maxVal = Math.max(1, ...Object.values(paidMap), ...Object.values(shareMap));
+      document.getElementById('memberComparisonWrap').innerHTML = appState.contacts.map(c => {
+        const paid = paidMap[c.id] || 0;
+        const share = shareMap[c.id] || 0;
+        const paidW = Math.round((paid / maxVal) * 100);
+        const shareW = Math.round((share / maxVal) * 100);
+        return `
+          <div>
+            <div class="flex justify-between" style="font-size:12px;font-weight:700;">
+              <span>${escapeHtml(c.name)}</span>
+              <span style="color:var(--text-secondary);">Paid <b style="color:#047857;">${formatPKR(paid)}</b> • Share <b style="color:#0284c7;">${formatPKR(share)}</b></span>
+            </div>
+            <div class="bar-track"><div class="bar-fill-emerald" style="width:${paidW}%;"></div></div>
+            <div class="bar-track"><div class="bar-fill-sky" style="width:${shareW}%;"></div></div>
+          </div>
+        `;
+      }).join('');
+
+      // Last 6 Months Trend Bar Chart
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        months.push({
+          ym: d.toISOString().slice(0, 7),
+          label: d.toLocaleString('en-US', { month: 'short' }),
+          total: 0
+        });
+      }
+      expenses.forEach(e => {
+        const ym = (e.date || '').slice(0, 7);
+        const bucket = months.find(m => m.ym === ym);
+        if (bucket) bucket.total += e.amount * (appState.ratesToPKR[e.currency] || 1);
+      });
+
+      const maxMonth = Math.max(1, ...months.map(m => m.total));
+      document.getElementById('monthlyTrendWrap').innerHTML = `
+        <div class="trend-grid">
+          ${months.map(m => {
+            const hPct = m.total > 0 ? Math.max(8, Math.round((m.total / maxMonth) * 100)) : 5;
+            const lbl = m.total >= 1000 ? Math.round(m.total / 1000) + 'k' : Math.round(m.total);
+            return `
+              <div class="trend-col">
+                <span style="font-size:10px;font-weight:700;color:var(--text-secondary);margin-bottom:4px;">${lbl}</span>
+                <div class="trend-bar" style="height:${hPct}%;"></div>
+                <span style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-top:6px;">${m.label}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderSettingsTab() {
+      const container = document.getElementById('contactsListContainer');
+      const net = calculateNetBalances(getCombinedLedger('ALL'));
+
+      container.innerHTML = appState.contacts.map(c => {
+        const isDefaultYou = c.id === DEFAULT_USER_ID;
+        const bal = net[c.id] || 0;
+        let balStr = `<span class="section-sub">Settled</span>`;
+        if (bal > 0.5) balStr = `<span style="font-size:12px;font-weight:800;color:#059669;">Gets ${formatPKR(bal)}</span>`;
+        else if (bal < -0.5) balStr = `<span style="font-size:12px;font-weight:800;color:#e11d48;">Owes ${formatPKR(Math.abs(bal))}</span>`;
+
+        return `
+          <div class="item-card flex items-center justify-between gap-2" style="background:var(--bg-page);padding:11px 12px;">
+            <div class="flex items-center gap-2-5 flex-1">
+              <div class="avatar">${escapeHtml(c.name.slice(0, 2).toUpperCase())}</div>
+              <div class="flex-1">
+                <div class="flex items-center gap-1-5">
+                  <span style="font-size:14px;font-weight:800;">${escapeHtml(c.name)}</span>
+                  ${c.id === appState.currentUserId ? '<span class="tag tag-emerald" style="font-size:10px;">ACTIVE</span>' : ''}
+                </div>
+                <div class="section-sub truncate">${escapeHtml(c.note || 'Contact')} ${c.phone ? '• ' + escapeHtml(c.phone) : ''}</div>
+              </div>
+            </div>
+            <div class="flex items-center gap-1-5 shrink-0">
+              <div style="margin-right:4px;">${balStr}</div>
+              <button onclick="openContactModal('${c.id}')" class="btn btn-light btn-xs">Edit</button>
+              ${!isDefaultYou ? `<button onclick="deleteContact('${c.id}')" class="btn btn-danger-soft btn-xs">Del</button>` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('rateUSD').value = appState.ratesToPKR.USD;
+      document.getElementById('rateAED').value = appState.ratesToPKR.AED;
+      document.getElementById('rateSAR').value = appState.ratesToPKR.SAR;
+      document.getElementById('rateGBP').value = appState.ratesToPKR.GBP;
+    }
+
+    // ==================== TAB & USER SWITCHING ====================
+    function switchTab(tabName) {
+      activeTab = tabName;
+      document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+      });
+
+      if (tabName === 'groups' && !activeGroupDetailId) renderGroupsTab();
+    }
+
+    function openAboutSection() {
+      switchTab('settings');
+      setTimeout(() => {
+        const card = document.getElementById('aboutDeveloperCard');
+        if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 60);
+    }
+
+    function copyDeveloperPhone() {
+      const tempInput = document.createElement('input');
+      tempInput.value = '03005115522';
+      document.body.appendChild(tempInput);
+      tempInput.select();
+      tempInput.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        showToast('Copied 03005115522 to clipboard!');
+      } catch (e) {
+        showToast('Number: 03005115522');
+      }
+      document.body.removeChild(tempInput);
+    }
+
+    function changeCurrentUser(userId) {
+      appState.currentUserId = userId;
+      saveState();
+      renderAll();
+      showToast(`Switched active user to ${getContactName(userId)}`);
+    }
+
+    function clearActivitySearch() {
+      document.getElementById('activitySearchInput').value = '';
+      renderActivityTab();
+    }
+
+    // ==================== EXPENSE MODAL & 4 SPLIT MODES ====================
+    function openExpenseModal(defaultGroupId = null, editExpenseId = null) {
+      const gSel = document.getElementById('expGroupSelect');
+      gSel.innerHTML = `<option value="DIRECT">1-on-1 Direct (No Group)</option>` +
+        appState.groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+
+      document.getElementById('editExpenseId').value = editExpenseId || '';
+      document.getElementById('expenseModalTitle').textContent = editExpenseId ? 'Edit Expense' : 'Add Shared Expense';
+
+      if (editExpenseId) {
+        const exp = appState.expenses.find(e => e.id === editExpenseId);
+        if (!exp) return;
+        gSel.value = exp.groupId || 'DIRECT';
+        document.getElementById('expCategorySelect').value = exp.category || 'Food & Dining';
+        document.getElementById('expDescription').value = exp.description || '';
+        document.getElementById('expCurrencySelect').value = exp.currency || 'PKR';
+        document.getElementById('expAmount').value = exp.amount || '';
+        document.getElementById('expDate').value = exp.date || new Date().toISOString().slice(0, 10);
+        document.getElementById('expRecurring').value = exp.recurring || 'One-time';
+        document.getElementById('expNotes').value = exp.notes || '';
+        tempReceiptBase64 = exp.receiptImg || '';
+      } else {
+        gSel.value = defaultGroupId || activeGroupDetailId || 'DIRECT';
+        document.getElementById('expCategorySelect').value = 'Food & Dining';
+        document.getElementById('expDescription').value = '';
+        document.getElementById('expCurrencySelect').value = 'PKR';
+        document.getElementById('expAmount').value = '';
+        document.getElementById('expDate').value = new Date().toISOString().slice(0, 10);
+        document.getElementById('expRecurring').value = 'One-time';
+        document.getElementById('expNotes').value = '';
+        tempReceiptBase64 = '';
+      }
+
+      updateReceiptPreviewUI();
+      onExpenseGroupChange(editExpenseId ? appState.expenses.find(e => e.id === editExpenseId) : null);
+      document.getElementById('expenseModal').classList.remove('hidden');
+    }
+
+    function getEligibleExpenseMembers() {
+      const groupId = document.getElementById('expGroupSelect').value;
+      if (groupId && groupId !== 'DIRECT') {
+        const grp = appState.groups.find(g => g.id === groupId);
+        if (grp && grp.memberIds.length) {
+          return appState.contacts.filter(c => grp.memberIds.includes(c.id));
+        }
+      }
+      return appState.contacts;
+    }
+
+    function onExpenseGroupChange(existingExp = null) {
+      const members = getEligibleExpenseMembers();
+      document.getElementById('noOtherContactsHint').classList.toggle('hidden', members.length > 1);
+
+      // Populate single payer dropdown
+      const singleSel = document.getElementById('singlePayerSelect');
+      singleSel.innerHTML = members.map(m =>
+        `<option value="${m.id}" ${m.id === appState.currentUserId ? 'selected' : ''}>${escapeHtml(m.name)}</option>`
+      ).join('');
+
+      // Populate multi-payer inputs
+      const multiWrap = document.getElementById('multiPayerInputs');
+      multiWrap.innerHTML = members.map(m => {
+        const existingPaid = existingExp
+          ? (existingExp.payers.find(p => p.memberId === m.id)?.amount || '')
+          : '';
+        return `
+          <div class="flex items-center justify-between gap-2" style="background:#ffffff;padding:7px 10px;border-radius:10px;border:1px solid var(--border-color);">
+            <span style="font-size:13px;font-weight:700;">${escapeHtml(m.name)}</span>
+            <input type="number" step="0.01" min="0" data-payer-id="${m.id}" value="${existingPaid}" oninput="validatePayersUI()" placeholder="0.00" class="input multi-payer-input" style="width:110px;padding:6px 8px;text-align:right;font-weight:700;" />
+          </div>
+        `;
+      }).join('');
+
+      if (existingExp && existingExp.payers.length > 1) {
+        setPayerMode('multi');
+      } else {
+        setPayerMode('single');
+        if (existingExp && existingExp.payers.length === 1) {
+          singleSel.value = existingExp.payers[0].memberId;
+        }
+      }
+
+      // Build Split Member Rows
+      const splitList = document.getElementById('splitMembersList');
+      splitList.innerHTML = members.map(m => {
+        const existingSplit = existingExp
+          ? existingExp.splits.find(s => s.memberId === m.id)
+          : null;
+        const isChecked = existingExp ? Boolean(existingSplit) : true;
+        const rawVal = existingSplit ? (existingSplit.rawVal ?? existingSplit.amount) : '';
+
+        return `
+          <div class="flex items-center justify-between gap-2" style="background:#ffffff;padding:8px 10px;border-radius:12px;border:1px solid var(--border-color);">
+            <label class="flex items-center gap-2 flex-1" style="cursor:pointer;">
+              <input type="checkbox" class="split-member-chk" data-member-id="${m.id}" ${isChecked ? 'checked' : ''} onchange="recalculateSplitUI()" style="width:17px;height:17px;accent-color:var(--primary);" />
+              <span style="font-size:13px;font-weight:700;">${escapeHtml(m.name)}</span>
+            </label>
+            <div class="flex items-center gap-1-5">
+              <input type="number" step="0.01" min="0" class="input split-custom-input hidden" data-member-id="${m.id}" value="${rawVal}" oninput="recalculateSplitUI()" placeholder="0" style="width:84px;padding:5px 8px;text-align:right;font-weight:700;font-size:13px;" />
+              <span class="split-computed-tag tag tag-emerald" data-member-id="${m.id}" style="min-width:74px;text-align:right;">Rs. 0</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      setSplitMode(existingExp ? (existingExp.splitMode || 'equal') : 'equal');
+    }
+
+    function setPayerMode(mode) {
+      modalPayerMode = mode;
+      document.getElementById('payerModeSingleBtn').classList.toggle('active', mode === 'single');
+      document.getElementById('payerModeMultiBtn').classList.toggle('active', mode === 'multi');
+      document.getElementById('singlePayerBox').classList.toggle('hidden', mode !== 'single');
+      document.getElementById('multiPayerBox').classList.toggle('hidden', mode !== 'multi');
+      validatePayersUI();
+    }
+
+    function setSplitMode(mode) {
+      modalSplitMode = mode;
+      document.querySelectorAll('.split-mode-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.split === mode);
+      });
+      document.querySelectorAll('.split-custom-input').forEach(inp => {
+        inp.classList.toggle('hidden', mode === 'equal');
+        if (mode === 'shares' && !inp.value) inp.value = '1';
+      });
+      recalculateSplitUI();
+    }
+
+    function validatePayersUI() {
+      const total = parseFloat(document.getElementById('expAmount').value) || 0;
+      const currency = document.getElementById('expCurrencySelect').value;
+      const msgEl = document.getElementById('payerValidationMsg');
+      if (modalPayerMode !== 'multi') return;
+
+      let paidSum = 0;
+      document.querySelectorAll('.multi-payer-input').forEach(inp => {
+        paidSum += parseFloat(inp.value) || 0;
+      });
+      const diff = Math.round((total - paidSum) * 100) / 100;
+      if (Math.abs(diff) < 0.01) {
+        msgEl.style.color = '#059669';
+        msgEl.textContent = `✓ Total Paid matches ${formatCurrency(total, currency)}`;
+      } else {
+        msgEl.style.color = '#e11d48';
+        msgEl.textContent = diff > 0
+          ? `${formatCurrency(diff, currency)} remaining to assign`
+          : `Over-assigned by ${formatCurrency(Math.abs(diff), currency)}`;
+      }
+    }
+
+    function recalculateSplitUI() {
+      const total = parseFloat(document.getElementById('expAmount').value) || 0;
+      const currency = document.getElementById('expCurrencySelect').value;
+      const rate = appState.ratesToPKR[currency] || 1;
+
+      const hintEl = document.getElementById('pkrConversionHint');
+      if (currency !== 'PKR' && total > 0) {
+        hintEl.classList.remove('hidden');
+        hintEl.textContent = `Converted Ledger Value: ${formatPKR(total * rate)} (Rate: 1 ${currency} = ${rate} PKR)`;
+      } else {
+        hintEl.classList.add('hidden');
+      }
+
+      validatePayersUI();
+
+      const checkedIds = [];
+      document.querySelectorAll('.split-member-chk').forEach(chk => {
+        if (chk.checked) checkedIds.push(chk.dataset.memberId);
+      });
+
+      const badge = document.getElementById('splitValidationBadge');
+      const computedMap = {};
+
+      if (!checkedIds.length) {
+        badge.className = 'tag';
+        badge.style.background = 'var(--danger-light)';
+        badge.style.color = 'var(--danger)';
+        badge.textContent = 'Select ≥ 1 person';
+      } else if (modalSplitMode === 'equal') {
+        const each = Math.round((total / checkedIds.length) * 100) / 100;
+        let running = 0;
+        checkedIds.forEach((id, idx) => {
+          if (idx === checkedIds.length - 1) {
+            computedMap[id] = Math.max(0, Math.round((total - running) * 100) / 100);
+          } else {
+            computedMap[id] = each;
+            running += each;
+          }
+        });
+        badge.className = 'tag tag-emerald';
+        badge.style.background = '';
+        badge.style.color = '';
+        badge.textContent = `${formatCurrency(each, currency)} / person`;
+      } else if (modalSplitMode === 'exact') {
+        let sum = 0;
+        checkedIds.forEach(id => {
+          const val = parseFloat(document.querySelector(`.split-custom-input[data-member-id="${id}"]`)?.value) || 0;
+          computedMap[id] = val;
+          sum += val;
+        });
+        const diff = Math.round((total - sum) * 100) / 100;
+        if (Math.abs(diff) < 0.02) {
+          badge.className = 'tag tag-emerald';
+          badge.style.background = '';
+          badge.style.color = '';
+          badge.textContent = '✓ Exact Match';
+        } else {
+          badge.className = 'tag';
+          badge.style.background = 'var(--danger-light)';
+          badge.style.color = 'var(--danger)';
+          badge.textContent = `${diff > 0 ? '+' : ''}${formatCurrency(diff, currency)} left`;
+        }
+      } else if (modalSplitMode === 'percent') {
+        let pctSum = 0;
+        checkedIds.forEach(id => {
+          const pct = parseFloat(document.querySelector(`.split-custom-input[data-member-id="${id}"]`)?.value) || 0;
+          pctSum += pct;
+          computedMap[id] = Math.round(((total * pct) / 100) * 100) / 100;
+        });
+        const diff = Math.round((100 - pctSum) * 100) / 100;
+        if (Math.abs(diff) < 0.05) {
+          badge.className = 'tag tag-emerald';
+          badge.style.background = '';
+          badge.style.color = '';
+          badge.textContent = '✓ 100% Allocated';
+        } else {
+          badge.className = 'tag';
+          badge.style.background = 'var(--danger-light)';
+          badge.style.color = 'var(--danger)';
+          badge.textContent = `${diff}% remaining`;
+        }
+      } else if (modalSplitMode === 'shares') {
+        let totalShares = 0;
+        const shareVals = {};
+        checkedIds.forEach(id => {
+          const sh = parseFloat(document.querySelector(`.split-custom-input[data-member-id="${id}"]`)?.value) || 0;
+          shareVals[id] = sh;
+          totalShares += sh;
+        });
+        checkedIds.forEach(id => {
+          computedMap[id] = totalShares > 0
+            ? Math.round(((total * shareVals[id]) / totalShares) * 100) / 100
+            : 0;
+        });
+        badge.className = 'tag tag-emerald';
+        badge.style.background = '';
+        badge.style.color = '';
+        badge.textContent = `Total: ${totalShares} shares`;
+      }
+
+      document.querySelectorAll('.split-computed-tag').forEach(tag => {
+        const id = tag.dataset.memberId;
+        const amt = computedMap[id] || 0;
+        tag.textContent = formatCurrency(amt, currency);
+      });
+    }
+
+    function saveExpense() {
+      const description = document.getElementById('expDescription').value.trim();
+      const amount = parseFloat(document.getElementById('expAmount').value) || 0;
+      const currency = document.getElementById('expCurrencySelect').value;
+      const groupId = document.getElementById('expGroupSelect').value;
+      const category = document.getElementById('expCategorySelect').value;
+      const date = document.getElementById('expDate').value || new Date().toISOString().slice(0, 10);
+      const recurring = document.getElementById('expRecurring').value;
+      const notes = document.getElementById('expNotes').value.trim();
+      const editId = document.getElementById('editExpenseId').value;
+
+      if (!description) {
+        showToast('Please enter a bill description.');
+        return;
+      }
+      if (amount <= 0) {
+        showToast('Please enter an amount greater than 0.');
+        return;
+      }
+
+      // Collect payers
+      let payers = [];
+      if (modalPayerMode === 'single') {
+        const payerId = document.getElementById('singlePayerSelect').value;
+        payers = [{ memberId: payerId, amount }];
+      } else {
+        let paidSum = 0;
+        document.querySelectorAll('.multi-payer-input').forEach(inp => {
+          const val = parseFloat(inp.value) || 0;
+          if (val > 0) {
+            payers.push({ memberId: inp.dataset.payerId, amount: val });
+            paidSum += val;
+          }
+        });
+        if (Math.abs(amount - paidSum) > 0.05) {
+          showToast('Multi-payer amounts must equal the total bill.');
+          return;
+        }
+      }
+
+      // Collect splits
+      const checkedIds = [];
+      document.querySelectorAll('.split-member-chk').forEach(chk => {
+        if (chk.checked) checkedIds.push(chk.dataset.memberId);
+      });
+      if (!checkedIds.length) {
+        showToast('Select at least one person to split with.');
+        return;
+      }
+
+      let splits = [];
+      if (modalSplitMode === 'equal') {
+        const each = Math.round((amount / checkedIds.length) * 100) / 100;
+        let running = 0;
+        checkedIds.forEach((id, idx) => {
+          const shareAmt = idx === checkedIds.length - 1
+            ? Math.max(0, Math.round((amount - running) * 100) / 100)
+            : each;
+          running += each;
+          splits.push({ memberId: id, amount: shareAmt, rawVal: shareAmt });
+        });
+      } else if (modalSplitMode === 'exact') {
+        let sum = 0;
+        checkedIds.forEach(id => {
+          const val = parseFloat(document.querySelector(`.split-custom-input[data-member-id="${id}"]`)?.value) || 0;
+          sum += val;
+          splits.push({ memberId: id, amount: val, rawVal: val });
+        });
+        if (Math.abs(amount - sum) > 0.05) {
+          showToast('Exact split amounts must add up to total.');
+          return;
+        }
+      } else if (modalSplitMode === 'percent') {
+        let pctSum = 0;
+        checkedIds.forEach(id => {
+          const pct = parseFloat(document.querySelector(`.split-custom-input[data-member-id="${id}"]`)?.value) || 0;
+          pctSum += pct;
+          const shareAmt = Math.round(((amount * pct) / 100) * 100) / 100;
+          splits.push({ memberId: id, amount: shareAmt, rawVal: pct });
+        });
+        if (Math.abs(100 - pctSum) > 0.1) {
+          showToast('Percentages must add up to 100%.');
+          return;
+        }
+      } else if (modalSplitMode === 'shares') {
+        let totalShares = 0;
+        const rawMap = {};
+        checkedIds.forEach(id => {
+          const sh = parseFloat(document.querySelector(`.split-custom-input[data-member-id="${id}"]`)?.value) || 0;
+          rawMap[id] = sh;
+          totalShares += sh;
+        });
+        if (totalShares <= 0) {
+          showToast('Total shares must be greater than 0.');
+          return;
+        }
+        checkedIds.forEach(id => {
+          const shareAmt = Math.round(((amount * rawMap[id]) / totalShares) * 100) / 100;
+          splits.push({ memberId: id, amount: shareAmt, rawVal: rawMap[id] });
+        });
+      }
+
+      const record = {
+        id: editId || ('exp_' + Date.now()),
+        groupId: groupId || 'DIRECT',
+        category,
+        description,
+        currency,
+        amount,
+        date,
+        recurring,
+        notes,
+        splitMode: modalSplitMode,
+        payers,
+        splits,
+        receiptImg: tempReceiptBase64 || ''
+      };
+
+      if (editId) {
+        const idx = appState.expenses.findIndex(e => e.id === editId);
+        if (idx !== -1) appState.expenses[idx] = record;
+        showToast('Expense updated!');
+      } else {
+        appState.expenses.unshift(record);
+        showToast('Expense added!');
+      }
+
+      saveState();
+      closeModal('expenseModal');
+      renderAll();
+    }
+
+    // ==================== RECEIPT COMPRESSION & LIGHTBOX ====================
+    function handleReceiptUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement('canvas');
+          const maxDim = 720;
+          let w = img.width;
+          let h = img.height;
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
+            }
+          }
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, w, h);
+          tempReceiptBase64 = canvas.toDataURL('image/jpeg', 0.68);
+          updateReceiptPreviewUI();
+          showToast('Receipt compressed & attached');
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateReceiptPreviewUI() {
+      const box = document.getElementById('receiptPreviewBox');
+      const img = document.getElementById('receiptThumbImg');
+      if (tempReceiptBase64) {
+        img.src = tempReceiptBase64;
+        box.classList.remove('hidden');
+      } else {
+        img.src = '';
+        box.classList.add('hidden');
+      }
+    }
+
+    function removeReceiptImage() {
+      tempReceiptBase64 = '';
+      document.getElementById('expReceiptInput').value = '';
+      updateReceiptPreviewUI();
+    }
+
+    function openLightbox(expenseId) {
+      const exp = appState.expenses.find(e => e.id === expenseId);
+      if (!exp || !exp.receiptImg) return;
+      document.getElementById('lightboxTitle').textContent = `${exp.description} (${exp.date})`;
+      document.getElementById('lightboxImg').src = exp.receiptImg;
+      document.getElementById('lightboxModal').classList.remove('hidden');
+    }
+
+    // ==================== GROUPS CRUD ====================
+    function openGroupModal(editGroupId = null) {
+      document.getElementById('editGroupId').value = editGroupId || '';
+      document.getElementById('groupModalTitle').textContent = editGroupId ? 'Edit Group' : 'Create Group';
+
+      const grp = editGroupId ? appState.groups.find(g => g.id === editGroupId) : null;
+      document.getElementById('groupNameInput').value = grp ? grp.name : '';
+      document.getElementById('groupCategoryInput').value = grp ? grp.category : '🏠 Home & Roommates';
+
+      const box = document.getElementById('groupMembersCheckboxes');
+      box.innerHTML = appState.contacts.map(c => {
+        const checked = grp ? grp.memberIds.includes(c.id) : true;
+        return `
+          <label class="flex items-center gap-2" style="padding:4px 2px;cursor:pointer;font-size:13px;font-weight:700;">
+            <input type="checkbox" class="grp-member-chk" value="${c.id}" ${checked ? 'checked' : ''} style="width:17px;height:17px;accent-color:var(--primary);" />
+            <span>${escapeHtml(c.name)}</span>
+          </label>
+        `;
+      }).join('');
+
+      document.getElementById('groupModal').classList.remove('hidden');
+    }
+
+    function saveGroup() {
+      const name = document.getElementById('groupNameInput').value.trim();
+      const category = document.getElementById('groupCategoryInput').value;
+      const editId = document.getElementById('editGroupId').value;
+
+      if (!name) {
+        showToast('Please enter a group name.');
+        return;
+      }
+
+      const memberIds = [];
+      document.querySelectorAll('.grp-member-chk').forEach(chk => {
+        if (chk.checked) memberIds.push(chk.value);
+      });
+
+      if (memberIds.length < 2) {
+        showToast('Add & select at least 2 members for a group.');
+        return;
+      }
+
+      if (editId) {
+        const idx = appState.groups.findIndex(g => g.id === editId);
+        if (idx !== -1) {
+          appState.groups[idx] = { ...appState.groups[idx], name, category, memberIds };
+        }
+        showToast('Group updated!');
+      } else {
+        appState.groups.push({
+          id: 'grp_' + Date.now(),
+          name,
+          category,
+          memberIds
+        });
+        showToast('Group created!');
+      }
+
+      saveState();
+      closeModal('groupModal');
+      renderAll();
+    }
+
+    function deleteGroup(groupId) {
+      openConfirmDialog(
+        'Delete Group?',
+        'This will delete the group. Existing expenses inside it will be moved to 1-on-1 Direct.',
+        () => {
+          appState.groups = appState.groups.filter(g => g.id !== groupId);
+          appState.expenses.forEach(e => { if (e.groupId === groupId) e.groupId = 'DIRECT'; });
+          appState.settlements.forEach(s => { if (s.groupId === groupId) s.groupId = 'DIRECT'; });
+          activeGroupDetailId = null;
+          saveState();
+          renderAll();
+          showToast('Group deleted.');
+        }
+      );
+    }
+
+    // ==================== CONTACTS CRUD ====================
+    function openContactModal(editContactId = null) {
+      document.getElementById('editContactId').value = editContactId || '';
+      document.getElementById('contactModalTitle').textContent = editContactId ? 'Edit Contact' : 'Add Contact';
+
+      const c = editContactId ? appState.contacts.find(x => x.id === editContactId) : null;
+      document.getElementById('contactNameInput').value = c ? c.name : '';
+      document.getElementById('contactPhoneInput').value = c ? (c.phone || '') : '';
+      document.getElementById('contactNoteInput').value = c ? (c.note || '') : '';
+
+      document.getElementById('contactModal').classList.remove('hidden');
+    }
+
+    function saveContact() {
+      const name = document.getElementById('contactNameInput').value.trim();
+      const phone = document.getElementById('contactPhoneInput').value.trim();
+      const note = document.getElementById('contactNoteInput').value.trim();
+      const editId = document.getElementById('editContactId').value;
+
+      if (!name) {
+        showToast('Please enter a contact name.');
+        return;
+      }
+
+      if (editId) {
+        const idx = appState.contacts.findIndex(c => c.id === editId);
+        if (idx !== -1) {
+          appState.contacts[idx] = { ...appState.contacts[idx], name, phone, note };
+        }
+        showToast('Contact updated!');
+      } else {
+        appState.contacts.push({
+          id: 'usr_' + Date.now(),
+          name,
+          phone,
+          note
+        });
+        showToast(`${name} added to contacts!`);
+      }
+
+      saveState();
+      closeModal('contactModal');
+      renderAll();
+
+      // Refresh open modals if user added a contact mid-flow
+      if (!document.getElementById('expenseModal').classList.contains('hidden')) {
+        onExpenseGroupChange();
+      }
+      if (!document.getElementById('groupModal').classList.contains('hidden')) {
+        openGroupModal(document.getElementById('editGroupId').value || null);
+      }
+    }
+
+    function deleteContact(contactId) {
+      if (contactId === DEFAULT_USER_ID) return;
+      openConfirmDialog(
+        'Remove Contact?',
+        `Remove ${getContactName(contactId)} from your contacts list?`,
+        () => {
+          appState.contacts = appState.contacts.filter(c => c.id !== contactId);
+          if (appState.currentUserId === contactId) appState.currentUserId = DEFAULT_USER_ID;
+          saveState();
+          renderAll();
+          showToast('Contact removed.');
+        }
+      );
+    }
+
+    // ==================== SETTLE UP & ENTRY DELETION ====================
+    function openSettleModal(fromId = null, toId = null, amount = '', groupId = 'DIRECT') {
+      const opts = appState.contacts.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+      const fromSel = document.getElementById('settleFromSelect');
+      const toSel = document.getElementById('settleToSelect');
+      fromSel.innerHTML = opts;
+      toSel.innerHTML = opts;
+
+      if (fromId) fromSel.value = fromId;
+      else fromSel.value = appState.currentUserId;
+
+      if (toId) toSel.value = toId;
+      else if (appState.contacts.length > 1) {
+        const other = appState.contacts.find(c => c.id !== fromSel.value);
+        if (other) toSel.value = other.id;
+      }
+
+      document.getElementById('settleAmountInput').value = amount || '';
+      document.getElementById('settleNoteInput').value = '';
+
+      const gSel = document.getElementById('settleGroupSelect');
+      gSel.innerHTML = `<option value="DIRECT">1-on-1 Direct</option>` +
+        appState.groups.map(g => `<option value="${g.id}">${escapeHtml(g.name)}</option>`).join('');
+      gSel.value = groupId || 'DIRECT';
+
+      document.getElementById('settleModal').classList.remove('hidden');
+    }
+
+    function confirmSettlement() {
+      const from = document.getElementById('settleFromSelect').value;
+      const to = document.getElementById('settleToSelect').value;
+      const amount = parseFloat(document.getElementById('settleAmountInput').value) || 0;
+      const groupId = document.getElementById('settleGroupSelect').value;
+      const notes = document.getElementById('settleNoteInput').value.trim();
+
+      if (from === to) {
+        showToast('Payer and receiver cannot be the same person.');
+        return;
+      }
+      if (amount <= 0) {
+        showToast('Enter a valid settlement amount.');
+        return;
+      }
+
+      appState.settlements.unshift({
+        id: 'stl_' + Date.now(),
+        from,
+        to,
+        amount,
+        currency: 'PKR',
+        groupId: groupId || 'DIRECT',
+        date: new Date().toISOString().slice(0, 10),
+        notes
+      });
+
+      saveState();
+      closeModal('settleModal');
+      renderAll();
+      showToast('Settlement recorded!');
+    }
+
+    function deleteEntry(id, entryType) {
+      openConfirmDialog(
+        'Delete Record?',
+        'Are you sure you want to permanently delete this entry from your ledger?',
+        () => {
+          if (entryType === 'settlement') {
+            appState.settlements = appState.settlements.filter(s => s.id !== id);
+          } else {
+            appState.expenses = appState.expenses.filter(e => e.id !== id);
+          }
+          saveState();
+          renderAll();
+          showToast('Entry deleted.');
+        }
+      );
+    }
+
+    // ==================== CURRENCY, CSV, JSON BACKUP & WHATSAPP ====================
+    function saveCurrencyRates() {
+      appState.ratesToPKR.USD = parseFloat(document.getElementById('rateUSD').value) || 278.5;
+      appState.ratesToPKR.AED = parseFloat(document.getElementById('rateAED').value) || 75.8;
+      appState.ratesToPKR.SAR = parseFloat(document.getElementById('rateSAR').value) || 74.2;
+      appState.ratesToPKR.GBP = parseFloat(document.getElementById('rateGBP').value) || 354.0;
+      saveState();
+      renderAll();
+      showToast('Exchange rates updated!');
+    }
+
+    function exportToCSV() {
+      const ledger = getCombinedLedger('ALL');
+      if (!ledger.length) {
+        showToast('No records available to export.');
+        return;
+      }
+      const rows = [
+        ['Date', 'Type', 'Group', 'Category', 'Description', 'Currency', 'Amount', 'PKR Equivalent', 'Paid By', 'Split Details', 'Notes']
+      ];
+
+      ledger.forEach(item => {
+        const rate = appState.ratesToPKR[item.currency || 'PKR'] || 1;
+        const pkrVal = Math.round(item.amount * rate * 100) / 100;
+        const paidStr = (item.payers || []).map(p => `${getContactName(p.memberId)}:${p.amount}`).join(' | ');
+        const splitStr = (item.splits || []).map(s => `${getContactName(s.memberId)}:${s.amount}`).join(' | ');
+        const desc = item.entryType === 'settlement'
+          ? `${getContactName(item.from)} paid ${getContactName(item.to)}`
+          : item.description;
+
+        rows.push([
+          item.date,
+          item.entryType.toUpperCase(),
+          getGroupName(item.groupId),
+          item.category || 'Settlement',
+          desc,
+          item.currency || 'PKR',
+          item.amount,
+          pkrVal,
+          paidStr,
+          splitStr,
+          item.notes || ''
+        ]);
+      });
+
+      const csvContent = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SplitPro_Ledger_${new Date().toISOString().slice(0, 10)}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('CSV / Excel file downloaded!');
+    }
+
+    function exportJSONBackup() {
+      const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SplitPro_Backup_${new Date().toISOString().slice(0, 10)}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      showToast('JSON backup downloaded!');
+    }
+
+    function importJSONBackup(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          if (!parsed || !Array.isArray(parsed.contacts) || !Array.isArray(parsed.expenses)) {
+            showToast('Invalid SplitPro backup file.');
+            return;
+          }
+          appState = parsed;
+          saveState();
+          renderAll();
+          showToast('Backup restored successfully!');
+        } catch (err) {
+          showToast('Could not read JSON file.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function promptClearAllData() {
+      openConfirmDialog(
+        'Clear All Data?',
+        'This will permanently erase all groups, contacts, expenses, and settlements, resetting SplitPro to a blank slate.',
+        () => {
+          appState = createBlankState();
+          activeGroupDetailId = null;
+          saveState();
+          renderAll();
+          switchTab('dashboard');
+          showToast('All data cleared.');
+        }
+      );
+    }
+
+    // ==================== WHATSAPP STATEMENT GENERATOR ====================
+    function openWhatsAppModal() {
+      generateWhatsAppText('bilingual');
+      document.getElementById('whatsappModal').classList.remove('hidden');
+    }
+
+    function generateWhatsAppText(mode = 'bilingual') {
+      document.getElementById('waLangBi').className = mode === 'bilingual' ? 'btn btn-green btn-sm' : 'btn btn-light btn-sm';
+      document.getElementById('waLangEn').className = mode === 'en' ? 'btn btn-green btn-sm' : 'btn btn-light btn-sm';
+
+      const ledger = getCombinedLedger('ALL');
+      const net = calculateNetBalances(ledger);
+      const transfers = simplifyDebts(net);
+      const today = new Date().toISOString().slice(0, 10);
+
+      let lines = [];
+      if (mode === 'bilingual') {
+        lines.push(`*📊 SplitPro Account Statement / حساب کتاب*`);
+        lines.push(`Date: ${today}`);
+        lines.push(`--------------------------------`);
+        if (!transfers.length) {
+          lines.push(`✅ All accounts are settled! / تمام حساب برابر ہیں`);
+        } else {
+          lines.push(`*Settlement Plan / ادائیگی کی تفصیل:*`);
+          transfers.forEach((tx, idx) => {
+            lines.push(`${idx + 1}. *${getContactName(tx.from)}* ➔ *${getContactName(tx.to)}*: *${formatPKR(tx.amount)}*`);
+          });
+        }
+        lines.push(`--------------------------------`);
+        lines.push(`Generated via SplitPro`);
+      } else {
+        lines.push(`*SplitPro Account Statement*`);
+        lines.push(`Date: ${today}`);
+        lines.push(`--------------------------------`);
+        if (!transfers.length) {
+          lines.push(`All balances are settled up!`);
+        } else {
+          lines.push(`*Simplified Settlement Plan:*`);
+          transfers.forEach((tx, idx) => {
+            lines.push(`${idx + 1}. ${getContactName(tx.from)} pays ${getContactName(tx.to)}: ${formatPKR(tx.amount)}`);
+          });
+        }
+        lines.push(`--------------------------------`);
+        lines.push(`Generated via SplitPro`);
+      }
+
+      document.getElementById('whatsappMessagePreview').value = lines.join('\n');
+    }
+
+    function copyWhatsAppText() {
+      const ta = document.getElementById('whatsappMessagePreview');
+      ta.select();
+      ta.setSelectionRange(0, 99999);
+      try {
+        document.execCommand('copy');
+        showToast('Statement copied to clipboard!');
+      } catch (e) {
+        showToast('Select text and copy manually.');
+      }
+    }
+
+    function launchWhatsAppApp() {
+      const text = encodeURIComponent(document.getElementById('whatsappMessagePreview').value);
+      window.open(`https://wa.me/?text=${text}`, '_blank', 'noopener,noreferrer');
+    }
+
+    // ==================== INITIALIZE ON LOAD ====================
+    window.addEventListener('DOMContentLoaded', () => {
+      renderAll();
+    });
+  </script>
+</body>
+</html>
